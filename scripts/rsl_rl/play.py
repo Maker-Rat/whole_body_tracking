@@ -20,6 +20,7 @@ parser.add_argument(
 parser.add_argument("--num_envs", type=int, default=None, help="Number of environments to simulate.")
 parser.add_argument("--task", type=str, default=None, help="Name of the task.")
 parser.add_argument("--motion_file", type=str, default=None, help="Path to the motion file.")
+parser.add_argument("--slow", type=float, default=0.0, help="Delay between steps in seconds for slow playback (e.g., 0.1).")
 # append RSL-RL cli arguments
 cli_args.add_rsl_rl_args(parser)
 # append AppLauncher cli args
@@ -159,6 +160,7 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     obs, _ = env.reset()
     timestep = 0
     # simulate environment
+    import time
     while simulation_app.is_running():
         # run everything in inference mode
         with torch.inference_mode():
@@ -166,6 +168,8 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
             actions = policy(obs)
             # env stepping
             obs, _, _, info = env.step(actions)
+        if args_cli.slow > 0:
+            time.sleep(args_cli.slow)
         if args_cli.video:
             timestep += 1
             # Exit the play loop after recording one video
