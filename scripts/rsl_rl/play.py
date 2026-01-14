@@ -165,7 +165,7 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
             # agent stepping
             actions = policy(obs)
             # env stepping
-            obs, _, _, _, _ = env.step(actions)
+            obs, _, _, info = env.step(actions)
         if args_cli.video:
             timestep += 1
             # Exit the play loop after recording one video
