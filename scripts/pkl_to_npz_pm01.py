@@ -13,6 +13,7 @@ parser = argparse.ArgumentParser(description="Convert .pkl motion to .npz for PM
 parser.add_argument("--input_file", type=str, required=True, help="Path to input .pkl file")
 parser.add_argument("--output_file", type=str, default=None, help="Path to output .npz file")
 parser.add_argument("--fps", type=int, default=50, help="Motion FPS (default: 50)")
+parser.add_argument("--max_frames", type=int, default=None, help="Maximum number of frames to convert")
 parser.add_argument("--inspect", action="store_true", help="Inspect .pkl structure without converting")
 
 args = parser.parse_args()
@@ -44,7 +45,7 @@ def inspect_pkl(filepath: str):
     print()
 
 
-def convert_pkl_to_npz(input_file: str, output_file: str, fps: int):
+def convert_pkl_to_npz(input_file: str, output_file: str, fps: int, max_frames: int = None):
     with open(input_file, "rb") as f:
         data = pickle.load(f)
     
@@ -69,6 +70,14 @@ def convert_pkl_to_npz(input_file: str, output_file: str, fps: int):
         raise ValueError(f"Unknown .pkl format. Keys: {data.keys()}")
     
     num_frames = joint_pos.shape[0]
+    
+    # Limit frames if max_frames specified
+    if max_frames is not None and max_frames < num_frames:
+        print(f"Limiting from {num_frames} to {max_frames} frames")
+        root_pos = root_pos[:max_frames]
+        root_quat = root_quat[:max_frames]
+        joint_pos = joint_pos[:max_frames]
+        num_frames = max_frames
     
     # Reorder joints from GMR to Isaac Lab order
     joint_pos = joint_pos[:, GMR_TO_ISAAC]
@@ -142,4 +151,4 @@ if __name__ == "__main__":
     if args.inspect:
         inspect_pkl(args.input_file)
     else:
-        convert_pkl_to_npz(args.input_file, args.output_file, args.fps)
+        convert_pkl_to_npz(args.input_file, args.output_file, args.fps, args.max_frames)
