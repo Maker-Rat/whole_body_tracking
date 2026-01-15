@@ -194,6 +194,7 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     timestep = 0
     # simulate environment
     import time
+    print(f"[DEBUG] Starting simulation loop, simulation_app.is_running() = {simulation_app.is_running()}")
     while simulation_app.is_running():
         # run everything in inference mode
         with torch.inference_mode():
@@ -203,23 +204,32 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
             # env stepping FIRST so targets are set
             obs, _, _, info = env.step(actions)
             
+            # Debug: print occasionally to confirm loop is running
+            if timestep % 100 == 0:
+                print(f"[DEBUG] timestep={timestep}, simulation running")
+            
             # Log joint data AFTER stepping (so targets are populated)
             if joint_log is not None and timestep < args_cli.log_steps:
-                base_env = joint_log["base_env"]
-                robot = base_env.scene["robot"]
-                
-                # Get actual joint positions
-                actual_pos = robot.data.joint_pos[0].cpu().numpy()  # First env
-                joint_log["actual"].append(actual_pos.copy())
-                
-                # Get the PD target from the robot's joint_pos_target
-                target_pos = robot.data.joint_pos_target[0].cpu().numpy()
-                joint_log["targets"].append(target_pos.copy())
-                
-                joint_log["actions"].append(actions[0].cpu().numpy().copy())
-                
-                if timestep % 100 == 0:
-                    print(f"[INFO] Logged step {timestep}/{args_cli.log_steps}")
+                try:
+                    base_env = joint_log["base_env"]
+                    robot = base_env.scene["robot"]
+                    
+                    # Get actual joint positions
+                    actual_pos = robot.data.joint_pos[0].cpu().numpy()  # First env
+                    joint_log["actual"].append(actual_pos.copy())
+                    
+                    # Get the PD target from the robot's joint_pos_target
+                    target_pos = robot.data.joint_pos_target[0].cpu().numpy()
+                    joint_log["targets"].append(target_pos.copy())
+                    
+                    joint_log["actions"].append(actions[0].cpu().numpy().copy())
+                    
+                    if timestep % 50 == 0:
+                        print(f"[INFO] Logged step {timestep}/{args_cli.log_steps}, collected {len(joint_log['targets'])} samples")
+                except Exception as e:
+                    print(f"[ERROR] Failed to log step {timestep}: {e}")
+                    import traceback
+                    traceback.print_exc()
             
         if args_cli.slow > 0:
             time.sleep(args_cli.slow)
