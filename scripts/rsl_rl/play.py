@@ -42,6 +42,10 @@ simulation_app = app_launcher.app
 """Rest everything follows."""
 
 import gymnasium as gym
+import matplotlib
+matplotlib.use('Agg')  # Use non-interactive backend for headless plotting
+import matplotlib.pyplot as plt
+import numpy as np
 import os
 import pathlib
 import torch
@@ -162,16 +166,27 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     # Setup joint logging if requested
     joint_log = None
     if args_cli.log_joints:
+        # Get the base Isaac Lab environment (unwrap through all wrappers)
         base_env = env.unwrapped
+        # For RslRlVecEnvWrapper, the actual env is in .env
+        while hasattr(base_env, 'env'):
+            base_env = base_env.env
+        # For gym wrappers
+        while hasattr(base_env, 'unwrapped') and base_env.unwrapped is not base_env:
+            base_env = base_env.unwrapped
+            
         robot = base_env.scene["robot"]
-        joint_names = robot.joint_names
+        joint_names = list(robot.joint_names)
         num_joints = len(joint_names)
         print(f"[INFO] Logging {num_joints} joints for {args_cli.log_steps} steps")
+        print(f"[INFO] Joint names: {joint_names[:5]}... (first 5)")
         joint_log = {
             "joint_names": joint_names,
             "targets": [],  # PD targets (action * scale + default)
             "actual": [],   # Actual joint positions
             "actions": [],  # Raw actions from policy
+            "base_env": base_env,  # Store reference to base env
+            "save_dir": os.path.dirname(resume_path),
         }
     
     # reset environment
@@ -185,32 +200,26 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
             # agent stepping
             actions = policy(obs)
             
-            # Log joint data before stepping
+            # env stepping FIRST so targets are set
+            obs, _, _, info = env.step(actions)
+            
+            # Log joint data AFTER stepping (so targets are populated)
             if joint_log is not None and timestep < args_cli.log_steps:
-                base_env = env.unwrapped
+                base_env = joint_log["base_env"]
                 robot = base_env.scene["robot"]
                 
                 # Get actual joint positions
                 actual_pos = robot.data.joint_pos[0].cpu().numpy()  # First env
                 joint_log["actual"].append(actual_pos.copy())
                 
-                # Get the action and compute PD target
-                # Target = action * scale + default_pos
-                action_manager = base_env.action_manager
-                # Get the processed action (after scaling)
-                processed_action = action_manager.action
-                if processed_action is not None:
-                    # The JointPositionAction applies: target = action * scale + default
-                    # We can get the target from the robot's joint_pos_target
-                    target_pos = robot.data.joint_pos_target[0].cpu().numpy()
-                    joint_log["targets"].append(target_pos.copy())
-                else:
-                    joint_log["targets"].append(actual_pos.copy())  # First step fallback
+                # Get the PD target from the robot's joint_pos_target
+                target_pos = robot.data.joint_pos_target[0].cpu().numpy()
+                joint_log["targets"].append(target_pos.copy())
                 
                 joint_log["actions"].append(actions[0].cpu().numpy().copy())
-            
-            # env stepping
-            obs, _, _, info = env.step(actions)
+                
+                if timestep % 100 == 0:
+                    print(f"[INFO] Logged step {timestep}/{args_cli.log_steps}")
             
         if args_cli.slow > 0:
             time.sleep(args_cli.slow)
@@ -220,13 +229,20 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
         # Check if we should stop logging and plot
         if joint_log is not None and timestep == args_cli.log_steps:
             print(f"[INFO] Finished logging {args_cli.log_steps} steps, generating plots...")
-            plot_joint_tracking(joint_log, os.path.dirname(resume_path))
-            print(f"[INFO] Plots saved to {os.path.dirname(resume_path)}")
+            plot_joint_tracking(joint_log, joint_log["save_dir"])
+            print(f"[INFO] Plots saved to {joint_log['save_dir']}")
+            joint_log = None  # Disable further logging
         
         if args_cli.video:
             # Exit the play loop after recording one video
             if timestep == args_cli.video_length:
                 break
+
+    # Generate plots if logging was interrupted before reaching log_steps
+    if joint_log is not None and len(joint_log["targets"]) > 0:
+        print(f"[INFO] Simulation ended early. Generating plots for {len(joint_log['targets'])} steps...")
+        plot_joint_tracking(joint_log, joint_log["save_dir"])
+        print(f"[INFO] Plots saved to {joint_log['save_dir']}")
 
     # close the simulator
     env.close()
@@ -234,12 +250,11 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
 
 def plot_joint_tracking(joint_log: dict, save_dir: str):
     """Plot PD targets vs actual joint positions."""
-    import matplotlib.pyplot as plt
-    import numpy as np
-    
     joint_names = joint_log["joint_names"]
     targets = np.array(joint_log["targets"])  # [T, num_joints]
     actual = np.array(joint_log["actual"])    # [T, num_joints]
+    
+    print(f"[INFO] Plotting: targets shape={targets.shape}, actual shape={actual.shape}")
     
     num_joints = len(joint_names)
     num_steps = targets.shape[0]
