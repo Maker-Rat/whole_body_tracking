@@ -336,8 +336,13 @@ def build_observation(robot_state, motion, time_step, last_action, cfg):
     t = time_step % motion.num_frames
     
     # 1. Command: target joint positions and velocities from motion
-    cmd_joint_pos = motion.joint_pos[t]  # [24]
-    cmd_joint_vel = motion.joint_vel[t]  # [24]
+    # Motion data is in MuJoCo/URDF order, but policy expects Isaac Lab order
+    cmd_joint_pos_mujoco = motion.joint_pos[t]  # [24] in MuJoCo order
+    cmd_joint_vel_mujoco = motion.joint_vel[t]  # [24] in MuJoCo order
+    
+    # Convert from MuJoCo order to Isaac Lab order
+    cmd_joint_pos = cmd_joint_pos_mujoco[cfg.ISAAC_TO_MUJOCO]
+    cmd_joint_vel = cmd_joint_vel_mujoco[cfg.ISAAC_TO_MUJOCO]
     obs.append(cmd_joint_pos)
     obs.append(cmd_joint_vel)
     
