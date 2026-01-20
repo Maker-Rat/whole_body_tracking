@@ -100,7 +100,7 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
         if ":" not in registry_name:  # Check if the registry name includes alias, if not, append ":latest"
             registry_name += ":latest"
         import pathlib
-
+        import os
         import wandb
 
         api = wandb.Api()

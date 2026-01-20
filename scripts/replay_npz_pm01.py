@@ -76,15 +76,27 @@ class MotionLoader:
 
 
 # Inline PM01 config to avoid importing whole_body_tracking package
-ARMATURE_HIGH_TORQUE = 0.045325
-ARMATURE_LOW_TORQUE = 0.039175
-NATURAL_FREQ = 10 * 2.0 * 3.1415926535
-DAMPING_RATIO = 2.0
 
-STIFFNESS_HIGH_TORQUE = ARMATURE_HIGH_TORQUE * NATURAL_FREQ**2
-STIFFNESS_LOW_TORQUE = ARMATURE_LOW_TORQUE * NATURAL_FREQ**2
-DAMPING_HIGH_TORQUE = 2.0 * DAMPING_RATIO * ARMATURE_HIGH_TORQUE * NATURAL_FREQ
-DAMPING_LOW_TORQUE = 2.0 * DAMPING_RATIO * ARMATURE_LOW_TORQUE * NATURAL_FREQ
+# Updated PD parameters and actuator groupings (to match latest pm01.py)
+STIFFNESS_HIP_PITCH = 70
+STIFFNESS_HIP_ROLL = 50
+STIFFNESS_HIP_YAW = 50
+STIFFNESS_KNEE_PITCH = 70
+STIFFNESS_ANKLE_PITCH = 20
+STIFFNESS_ANKLE_ROLL = 20
+STIFFNESS_WAIST_YAW = 50
+STIFFNESS_HEAD_YAW = 50
+STIFFNESS_ARM_ALL = 50
+
+DAMPING_HIP_PITCH = 7.0
+DAMPING_HIP_ROLL = 5.0
+DAMPING_HIP_YAW = 5.0
+DAMPING_KNEE_PITCH = 7.0
+DAMPING_ANKLE_PITCH = 0.2
+DAMPING_ANKLE_ROLL = 0.2
+DAMPING_WAIST_YAW = 5.0
+DAMPING_HEAD_YAW = 5.0
+DAMPING_ARM_ALL = 5.0
 
 PM01_CFG = ArticulationCfg(
     spawn=sim_utils.UrdfFileCfg(
@@ -124,35 +136,62 @@ PM01_CFG = ArticulationCfg(
     ),
     soft_joint_pos_limit_factor=0.9,
     actuators={
-        "legs_high_torque": ImplicitActuatorCfg(
-            joint_names_expr=["j.*_hip_pitch_.*", "j.*_hip_roll_.*", "j.*_knee_pitch_.*"],
-            stiffness=STIFFNESS_HIGH_TORQUE,
-            damping=DAMPING_HIGH_TORQUE,
+        # Hip pitch (high torque)
+        "hip_pitch": ImplicitActuatorCfg(
+            joint_names_expr=["j00_hip_pitch_l", "j06_hip_pitch_r"],
+            stiffness=STIFFNESS_HIP_PITCH,
+            damping=DAMPING_HIP_PITCH,
         ),
-        "legs_low_torque": ImplicitActuatorCfg(
-            joint_names_expr=["j.*_hip_yaw_.*"],
-            stiffness=STIFFNESS_LOW_TORQUE,
-            damping=DAMPING_LOW_TORQUE,
+        # Hip roll
+        "hip_roll": ImplicitActuatorCfg(
+            joint_names_expr=["j01_hip_roll_l", "j07_hip_roll_r"],
+            stiffness=STIFFNESS_HIP_ROLL,
+            damping=DAMPING_HIP_ROLL,
         ),
-        "feet": ImplicitActuatorCfg(
-            joint_names_expr=["j.*_ankle_pitch_.*", "j.*_ankle_roll_.*"],
-            stiffness=STIFFNESS_LOW_TORQUE,
-            damping=DAMPING_LOW_TORQUE,
+        # Hip yaw
+        "hip_yaw": ImplicitActuatorCfg(
+            joint_names_expr=["j02_hip_yaw_l", "j08_hip_yaw_r"],
+            stiffness=STIFFNESS_HIP_YAW,
+            damping=DAMPING_HIP_YAW,
         ),
+        # Knee pitch (high torque)
+        "knee_pitch": ImplicitActuatorCfg(
+            joint_names_expr=["j03_knee_pitch_l", "j09_knee_pitch_r"],
+            stiffness=STIFFNESS_KNEE_PITCH,
+            damping=DAMPING_KNEE_PITCH,
+        ),
+        # Ankle pitch
+        "ankle_pitch": ImplicitActuatorCfg(
+            joint_names_expr=["j04_ankle_pitch_l", "j10_ankle_pitch_r"],
+            stiffness=STIFFNESS_ANKLE_PITCH,
+            damping=DAMPING_ANKLE_PITCH,
+        ),
+        # Ankle roll
+        "ankle_roll": ImplicitActuatorCfg(
+            joint_names_expr=["j05_ankle_roll_l", "j11_ankle_roll_r"],
+            stiffness=STIFFNESS_ANKLE_ROLL,
+            damping=DAMPING_ANKLE_ROLL,
+        ),
+        # Waist
         "waist": ImplicitActuatorCfg(
-            joint_names_expr=["j.*_waist_.*"],
-            stiffness=STIFFNESS_LOW_TORQUE,
-            damping=DAMPING_LOW_TORQUE,
+            joint_names_expr=["j12_waist_yaw"],
+            stiffness=STIFFNESS_WAIST_YAW,
+            damping=DAMPING_WAIST_YAW,
         ),
+        # Arms
         "arms": ImplicitActuatorCfg(
-            joint_names_expr=["j.*_shoulder_.*", "j.*_elbow_.*"],
-            stiffness=STIFFNESS_LOW_TORQUE,
-            damping=DAMPING_LOW_TORQUE,
+            joint_names_expr=[
+                "j13_shoulder_pitch_l", "j14_shoulder_roll_l", "j15_shoulder_yaw_l", "j16_elbow_pitch_l", "j17_elbow_yaw_l",
+                "j18_shoulder_pitch_r", "j19_shoulder_roll_r", "j20_shoulder_yaw_r", "j21_elbow_pitch_r", "j22_elbow_yaw_r"
+            ],
+            stiffness=STIFFNESS_ARM_ALL,
+            damping=DAMPING_ARM_ALL,
         ),
+        # Head
         "head": ImplicitActuatorCfg(
-            joint_names_expr=["j.*_head_.*"],
-            stiffness=STIFFNESS_LOW_TORQUE,
-            damping=DAMPING_LOW_TORQUE,
+            joint_names_expr=["j23_head_yaw"],
+            stiffness=STIFFNESS_HEAD_YAW,
+            damping=DAMPING_HEAD_YAW,
         ),
     },
 )

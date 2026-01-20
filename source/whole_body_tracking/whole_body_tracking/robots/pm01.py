@@ -4,21 +4,29 @@ from isaaclab.assets.articulation import ArticulationCfg
 
 from whole_body_tracking.assets import ASSET_DIR
 
-# PM01 motor parameters from MuJoCo XML spec
-# High torque motor (164 Nm): hip_pitch, hip_roll, knee_pitch
-ARMATURE_HIGH_TORQUE = 0.045325
-# Low torque motor (52-61 Nm): hip_yaw, ankle, waist, arms, head
-ARMATURE_LOW_TORQUE = 0.039175
 
-NATURAL_FREQ = 10 * 2.0 * 3.1415926535  # 10Hz
-DAMPING_RATIO = 2.0
+# PM01 motor parameters (updated for new PD config)
+STIFFNESS_HIP_PITCH = 70
+STIFFNESS_HIP_ROLL = 50
+STIFFNESS_HIP_YAW = 50
+STIFFNESS_KNEE_PITCH = 70
+STIFFNESS_ANKLE_PITCH = 20
+STIFFNESS_ANKLE_ROLL = 20
+STIFFNESS_WAIST_YAW = 50
+STIFFNESS_HEAD_YAW = 50
+STIFFNESS_ARM_ALL = 50
 
-STIFFNESS_HIGH_TORQUE = ARMATURE_HIGH_TORQUE * NATURAL_FREQ**2
-STIFFNESS_LOW_TORQUE = ARMATURE_LOW_TORQUE * NATURAL_FREQ**2
-
-DAMPING_HIGH_TORQUE = 2.0 * DAMPING_RATIO * ARMATURE_HIGH_TORQUE * NATURAL_FREQ
-DAMPING_LOW_TORQUE = 2.0 * DAMPING_RATIO * ARMATURE_LOW_TORQUE * NATURAL_FREQ
-
+DAMPING_HIP_PITCH = 7.0
+DAMPING_HIP_ROLL = 5.0
+DAMPING_HIP_YAW = 5.0
+DAMPING_KNEE_PITCH = 7.0
+DAMPING_ANKLE_PITCH = 0.2
+DAMPING_ANKLE_ROLL = 0.2
+DAMPING_WAIST_YAW = 5.0
+DAMPING_HEAD_YAW = 5.0
+DAMPING_ARM_ALL = 5.0
+    
+    
 PM01_CFG = ArticulationCfg(
     spawn=sim_utils.UrdfFileCfg(
         fix_base=False,
@@ -42,13 +50,11 @@ PM01_CFG = ArticulationCfg(
         ),
     ),
     init_state=ArticulationCfg.InitialStateCfg(
-        pos=(0.0, 0.0, 0.82),  # PM01 default base height
+        pos=(0.0, 0.0, 0.82),
         joint_pos={
-            # Leg initial pose from MuJoCo config
             "j.*_hip_pitch_.*": -0.12,
             "j.*_knee_pitch_.*": 0.24,
             "j.*_ankle_pitch_.*": -0.12,
-            # Arms relaxed
             "j.*_elbow_pitch_.*": 0.6,
             "j13_shoulder_pitch_l": 0.2,
             "j14_shoulder_roll_l": 0.2,
@@ -59,95 +65,90 @@ PM01_CFG = ArticulationCfg(
     ),
     soft_joint_pos_limit_factor=0.9,
     actuators={
-        # High torque joints (164 Nm): hip_pitch, hip_roll, knee_pitch
-        "legs_high_torque": ImplicitActuatorCfg(
-            joint_names_expr=[
-                "j00_hip_pitch_l",
-                "j01_hip_roll_l",
-                "j03_knee_pitch_l",
-                "j06_hip_pitch_r",
-                "j07_hip_roll_r",
-                "j09_knee_pitch_r",
-            ],
+        # Hip pitch (high torque)
+        "hip_pitch": ImplicitActuatorCfg(
+            joint_names_expr=["j00_hip_pitch_l", "j06_hip_pitch_r"],
             effort_limit_sim=164.0,
             velocity_limit_sim=26.3,
-            stiffness=STIFFNESS_HIGH_TORQUE,
-            damping=DAMPING_HIGH_TORQUE,
-            armature=ARMATURE_HIGH_TORQUE,
+            stiffness=STIFFNESS_HIP_PITCH,
+            damping=DAMPING_HIP_PITCH,
         ),
-        # Low torque hip joints (52 Nm): hip_yaw
-        "legs_low_torque": ImplicitActuatorCfg(
-            joint_names_expr=[
-                "j02_hip_yaw_l",
-                "j08_hip_yaw_r",
-            ],
-            effort_limit_sim=52.0,
+        # Hip roll
+        "hip_roll": ImplicitActuatorCfg(
+            joint_names_expr=["j01_hip_roll_l", "j07_hip_roll_r"],
+            effort_limit_sim=164.0,
+            velocity_limit_sim=26.3,
+            stiffness=STIFFNESS_HIP_ROLL,
+            damping=DAMPING_HIP_ROLL,
+        ),
+        # Hip yaw
+        "hip_yaw": ImplicitActuatorCfg(
+            joint_names_expr=["j02_hip_yaw_l", "j08_hip_yaw_r"],
+            effort_limit_sim=61.0,
             velocity_limit_sim=35.2,
-            stiffness=STIFFNESS_LOW_TORQUE,
-            damping=DAMPING_LOW_TORQUE,
-            armature=ARMATURE_LOW_TORQUE,
+            stiffness=STIFFNESS_HIP_YAW,
+            damping=DAMPING_HIP_YAW,
         ),
-        # Feet (52 Nm): ankle_pitch, ankle_roll
-        "feet": ImplicitActuatorCfg(
-            joint_names_expr=[
-                "j04_ankle_pitch_l",
-                "j05_ankle_roll_l",
-                "j10_ankle_pitch_r",
-                "j11_ankle_roll_r",
-            ],
-            effort_limit_sim=52.0,
+        # Knee pitch (high torque)
+        "knee_pitch": ImplicitActuatorCfg(
+            joint_names_expr=["j03_knee_pitch_l", "j09_knee_pitch_r"],
+            effort_limit_sim=164.0,
+            velocity_limit_sim=26.3,
+            stiffness=STIFFNESS_KNEE_PITCH,
+            damping=DAMPING_KNEE_PITCH,
+        ),
+        # Ankle pitch
+        "ankle_pitch": ImplicitActuatorCfg(
+            joint_names_expr=["j04_ankle_pitch_l", "j10_ankle_pitch_r"],
+            effort_limit_sim=61.0,
             velocity_limit_sim=35.2,
-            stiffness=STIFFNESS_LOW_TORQUE,
-            damping=DAMPING_LOW_TORQUE,
-            armature=ARMATURE_LOW_TORQUE,
+            stiffness=STIFFNESS_ANKLE_PITCH,
+            damping=DAMPING_ANKLE_PITCH,
         ),
-        # Waist (52 Nm)
+        # Ankle roll
+        "ankle_roll": ImplicitActuatorCfg(
+            joint_names_expr=["j05_ankle_roll_l", "j11_ankle_roll_r"],
+            effort_limit_sim=61.0,
+            velocity_limit_sim=35.2,
+            stiffness=STIFFNESS_ANKLE_ROLL,
+            damping=DAMPING_ANKLE_ROLL,
+        ),
+        # Waist
         "waist": ImplicitActuatorCfg(
             joint_names_expr=["j12_waist_yaw"],
-            effort_limit_sim=52.0,
+            effort_limit_sim=61.0,
             velocity_limit_sim=35.2,
-            stiffness=STIFFNESS_LOW_TORQUE,
-            damping=DAMPING_LOW_TORQUE,
-            armature=ARMATURE_LOW_TORQUE,
+            stiffness=STIFFNESS_WAIST_YAW,
+            damping=DAMPING_WAIST_YAW,
         ),
-        # Arms (52 Nm)
+        # Arms
         "arms": ImplicitActuatorCfg(
             joint_names_expr=[
-                "j13_shoulder_pitch_l",
-                "j14_shoulder_roll_l",
-                "j15_shoulder_yaw_l",
-                "j16_elbow_pitch_l",
-                "j17_elbow_yaw_l",
-                "j18_shoulder_pitch_r",
-                "j19_shoulder_roll_r",
-                "j20_shoulder_yaw_r",
-                "j21_elbow_pitch_r",
-                "j22_elbow_yaw_r",
+                "j13_shoulder_pitch_l", "j14_shoulder_roll_l", "j15_shoulder_yaw_l", "j16_elbow_pitch_l", "j17_elbow_yaw_l",
+                "j18_shoulder_pitch_r", "j19_shoulder_roll_r", "j20_shoulder_yaw_r", "j21_elbow_pitch_r", "j22_elbow_yaw_r"
             ],
-            effort_limit_sim=52.0,
+            effort_limit_sim=61.0,
             velocity_limit_sim=35.2,
-            stiffness=STIFFNESS_LOW_TORQUE,
-            damping=DAMPING_LOW_TORQUE,
-            armature=ARMATURE_LOW_TORQUE,
+            stiffness=STIFFNESS_ARM_ALL,
+            damping=DAMPING_ARM_ALL,
         ),
-        # Head (52 Nm)
+        # Head
         "head": ImplicitActuatorCfg(
             joint_names_expr=["j23_head_yaw"],
-            effort_limit_sim=52.0,
+            effort_limit_sim=61.0,
             velocity_limit_sim=35.2,
-            stiffness=STIFFNESS_LOW_TORQUE,
-            damping=DAMPING_LOW_TORQUE,
-            armature=ARMATURE_LOW_TORQUE,
+            stiffness=STIFFNESS_HEAD_YAW,
+            damping=DAMPING_HEAD_YAW,
         ),
     },
 )
 
-# Compute action scale for each actuator group
+# Compute action scale for each actuator group (0.25 * effort / stiffness)
 PM01_ACTION_SCALE = {}
-for a in PM01_CFG.actuators.values():
-    e = a.effort_limit_sim
-    s = a.stiffness
-    names = a.joint_names_expr
+for group in PM01_CFG.actuators.values():
+    e = group.effort_limit_sim
+    s = group.stiffness
+    names = group.joint_names_expr
     if not isinstance(e, dict):
         e = {n: e for n in names}
     if not isinstance(s, dict):

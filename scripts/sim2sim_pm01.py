@@ -23,7 +23,7 @@ class PM01Config:
     
     # Simulation
     dt = 0.001  # MuJoCo timestep (1000 Hz)
-    decimation = 20  # Policy runs at 50 Hz (1000/20)
+    decimation = 20  # Policy runs at 50 Hz (1000/20 = 50)
     sim_duration = 60.0  # seconds
     
     # Robot
@@ -44,7 +44,7 @@ class PM01Config:
     
     # Torque limits
     tau_limit_high = 164.0  # Nm
-    tau_limit_low = 61.0    # Nm
+    tau_limit_low = 41.0    # Nm
     
     # Action scales (from training config) - in Isaac Lab order
     action_scales = {
@@ -214,8 +214,8 @@ class MotionLoader:
     def __init__(self, motion_file: str):
         data = np.load(motion_file)
         self.fps = float(data['fps'])
-        self.joint_pos = data['joint_pos']  # [T, num_joints]
-        self.joint_vel = data['joint_vel']  # [T, num_joints]
+        self.joint_pos = data['joint_pos']  # [T, num_joints] - already in Isaac Lab order
+        self.joint_vel = data['joint_vel']  # [T, num_joints] - already in Isaac Lab order
         self.body_pos_w = data['body_pos_w']  # [T, num_bodies, 3]
         self.body_quat_w = data['body_quat_w']  # [T, num_bodies, 4] wxyz
         self.body_lin_vel_w = data['body_lin_vel_w']
@@ -225,6 +225,7 @@ class MotionLoader:
         print(f"Loaded motion: {self.num_frames} frames at {self.fps} fps")
         print(f"  Joint pos shape: {self.joint_pos.shape}")
         print(f"  Body pos shape: {self.body_pos_w.shape}")
+        print(f"  NOTE: Joint data is in Isaac Lab order (from pkl_to_npz conversion)")
 
 
 def quat_to_rot_matrix(quat_wxyz):
@@ -304,6 +305,17 @@ def get_robot_state(data, model, cfg):
     joint_pos_isaac = joint_pos_mujoco[cfg.ISAAC_TO_MUJOCO]
     joint_vel_isaac = joint_vel_mujoco[cfg.ISAAC_TO_MUJOCO]
     
+    # Get anchor body (torso) pose from MuJoCo xpos/xquat
+    # link_torso_yaw is the anchor body - find its index
+    torso_body_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "link_torso_yaw")
+    if torso_body_id >= 0:
+        anchor_pos = data.xpos[torso_body_id].copy()
+        anchor_quat_wxyz = data.xquat[torso_body_id].copy()
+    else:
+        # Fallback to base if torso not found
+        anchor_pos = base_pos
+        anchor_quat_wxyz = base_quat_wxyz
+    
     return {
         'base_pos': base_pos,
         'base_quat': base_quat_wxyz,
@@ -311,6 +323,8 @@ def get_robot_state(data, model, cfg):
         'base_ang_vel': base_ang_vel_local,
         'joint_pos': joint_pos_isaac,  # In Isaac Lab order
         'joint_vel': joint_vel_isaac,  # In Isaac Lab order
+        'anchor_pos': anchor_pos,  # Torso body position
+        'anchor_quat': anchor_quat_wxyz,  # Torso body orientation
     }
 
 
@@ -329,6 +343,8 @@ def build_observation(robot_state, motion, time_step, last_action, cfg):
     8. last_action - 24 dims
     
     Total: 48 + 3 + 6 + 3 + 3 + 24 + 24 + 24 = 135 dims
+
+    For now we omit 1,2,3 to reduce to 78 dims, as policy was trained without them.
     """
     obs = []
     
@@ -336,15 +352,12 @@ def build_observation(robot_state, motion, time_step, last_action, cfg):
     t = time_step % motion.num_frames
     
     # 1. Command: target joint positions and velocities from motion
-    # Motion data is in MuJoCo/URDF order, but policy expects Isaac Lab order
-    cmd_joint_pos_mujoco = motion.joint_pos[t]  # [24] in MuJoCo order
-    cmd_joint_vel_mujoco = motion.joint_vel[t]  # [24] in MuJoCo order
-    
-    # Convert from MuJoCo order to Isaac Lab order
-    cmd_joint_pos = cmd_joint_pos_mujoco[cfg.ISAAC_TO_MUJOCO]
-    cmd_joint_vel = cmd_joint_vel_mujoco[cfg.ISAAC_TO_MUJOCO]
-    obs.append(cmd_joint_pos)
-    obs.append(cmd_joint_vel)
+    # Motion data from pkl_to_npz is ALREADY in Isaac Lab order (GMR_TO_ISAAC was applied)
+    # So we use it directly - no conversion needed!
+    cmd_joint_pos = motion.joint_pos[t]  # [24] already in Isaac Lab order
+    cmd_joint_vel = motion.joint_vel[t]  # [24] already in Isaac Lab order
+    # obs.append(cmd_joint_pos)
+    # obs.append(cmd_joint_vel)
     
     # Get anchor body pose from motion (link_torso_yaw)
     # Based on FK analysis: body 7 is link_torso_yaw at z≈1.12m with similar orientation to pelvis
@@ -354,21 +367,21 @@ def build_observation(robot_state, motion, time_step, last_action, cfg):
     motion_anchor_pos = motion.body_pos_w[t, anchor_idx]
     motion_anchor_quat = motion.body_quat_w[t, anchor_idx]
     
-    # Robot anchor pose (using base as approximation - in real impl would need torso body)
-    robot_anchor_pos = robot_state['base_pos']
-    robot_anchor_quat = robot_state['base_quat']
+    # Robot anchor pose - use the actual torso body from MuJoCo
+    robot_anchor_pos = robot_state['anchor_pos']
+    robot_anchor_quat = robot_state['anchor_quat']
     
     # 2. motion_anchor_pos_b: relative position of motion anchor in robot anchor frame
     anchor_pos_rel, anchor_quat_rel = subtract_frame_transforms(
         robot_anchor_pos, robot_anchor_quat,
         motion_anchor_pos, motion_anchor_quat
     )
-    obs.append(anchor_pos_rel)
+    # obs.append(anchor_pos_rel)
     
     # 3. motion_anchor_ori_b: first 2 columns of rotation matrix
     rot_mat = quat_to_rot_matrix(anchor_quat_rel)
-    obs.append(rot_mat[:, 0])  # First column
-    obs.append(rot_mat[:, 1])  # Second column
+    # obs.append(rot_mat[:, 0])  # First column
+    # obs.append(rot_mat[:, 1])  # Second column
     
     # 4. base_lin_vel
     obs.append(robot_state['base_lin_vel'])
@@ -505,7 +518,7 @@ def load_policy(policy_path=None, onnx_path=None, wandb_path=None):
                 def __init__(self):
                     super().__init__()
                     self.net = torch.nn.Sequential(
-                        torch.nn.Linear(135, 512),
+                        torch.nn.Linear(78, 512),
                         torch.nn.ELU(),
                         torch.nn.Linear(512, 256),
                         torch.nn.ELU(),
@@ -621,10 +634,14 @@ def run_sim2sim(policy_fn, motion, cfg, args):
                 
                 # Build observation
                 obs = build_observation(robot_state, motion, motion_step, last_action, cfg)
+                # print("Observation:", obs)
                 
                 # Run policy (pass motion time step for phase info)
                 action = policy_fn(obs, time_step=motion_step)
-                action = np.clip(action, -1.0, 1.0)  # Clip actions
+                # action = np.zeros_like(action)  # TEMPORARY OVERRIDE TO ZERO ACTIONS
+                # action[10] = 10
+
+                # print(action, type(action))
                 
                 # Scale action
                 target_pos = action * action_scales
@@ -633,14 +650,19 @@ def run_sim2sim(policy_fn, motion, cfg, args):
                 # Debug output
                 if hasattr(cfg, 'debug') and cfg.debug and policy_step < 5:
                     print(f"\n=== Debug Step {policy_step} ===")
-                    print(f"Obs shape: {obs.shape}, range: [{obs.min():.3f}, {obs.max():.3f}]")
-                    print(f"Action range: [{action.min():.3f}, {action.max():.3f}]")
-                    print(f"Target pos range: [{target_pos.min():.3f}, {target_pos.max():.3f}]")
-                    print(f"Base height: {data.qpos[2]:.3f}")
-                    # Show first few joint positions vs motion command
-                    print(f"Robot joint_pos (first 6): {robot_state['joint_pos'][:6]}")
-                    print(f"Motion cmd_pos (first 6): {motion.joint_pos[motion_step, :6]}")
-                    print(f"Default pos (first 6): {default_pos_isaac[:6]}")
+                    print(f"Obs shape: {obs.shape}")
+                    print(f"Obs[0:10] (cmd joint pos): {obs[0:10]}")
+                    print(f"Obs[48:57] (anchor pos+ori): {obs[48:57]}")
+                    print(f"Obs[111:120] (last_action): {obs[111:120]}")
+                    print(f"Action: {action}")
+                    print(f"Base height: {data.qpos[2]:.3f}, Anchor height: {robot_state['anchor_pos'][2]:.3f}")
+                    # Print anchor world positions and orientations for MuJoCo and motion
+                    print(f"MuJoCo anchor_pos: {robot_state['anchor_pos']}")
+                    print(f"MuJoCo anchor_quat (wxyz): {robot_state['anchor_quat']}")
+                    t = motion_step % motion.num_frames
+                    anchor_idx = 7
+                    print(f"Motion anchor_pos: {motion.body_pos_w[t, anchor_idx]}")
+                    print(f"Motion anchor_quat (wxyz): {motion.body_quat_w[t, anchor_idx]}")
                 
                 # Advance motion
                 motion_step += 1
@@ -676,7 +698,7 @@ def run_sim2sim(policy_fn, motion, cfg, args):
             step_count += 1
             
             # Update viewer at ~60 Hz (not every physics step)
-            if not args.headless and step_count % 16 == 0:  # 1000 Hz / 16 ≈ 60 Hz
+            if not args.headless and step_count % 32 == 0:  # 1000 Hz / 16 ≈ 60 Hz
                 viewer.sync()
                 if not viewer.is_running():
                     break
