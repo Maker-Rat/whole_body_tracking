@@ -16,6 +16,7 @@ import mujoco.viewer
 from scipy.spatial.transform import Rotation as R
 from collections import deque
 
+
 # ============== Configuration ==============
 
 class PM01Config:
@@ -31,22 +32,81 @@ class PM01Config:
     mujoco_model_path = None  # Set via command line or default
     
     # PD gains (from pm01.py)
-    ARMATURE_HIGH_TORQUE = 0.045325
-    ARMATURE_LOW_TORQUE = 0.039175
-    NATURAL_FREQ = 10 * 2.0 * np.pi  # 10 Hz
-    DAMPING_RATIO = 2.0
-    
-    # Stiffness and damping
-    kp_high = ARMATURE_HIGH_TORQUE * NATURAL_FREQ**2  # ~179
-    kp_low = ARMATURE_LOW_TORQUE * NATURAL_FREQ**2    # ~155
-    kd_high = 2.0 * DAMPING_RATIO * ARMATURE_HIGH_TORQUE * NATURAL_FREQ  # ~11.4
-    kd_low = 2.0 * DAMPING_RATIO * ARMATURE_LOW_TORQUE * NATURAL_FREQ    # ~9.8
-    
+    # Stiffness
+    # STIFFNESS_HIP_PITCH = 70
+    # STIFFNESS_HIP_ROLL = 50
+    # STIFFNESS_HIP_YAW = 50
+    # STIFFNESS_KNEE_PITCH = 70
+    # STIFFNESS_ANKLE_PITCH = 20
+    # STIFFNESS_ANKLE_ROLL = 20
+    # STIFFNESS_WAIST_YAW = 50
+    # STIFFNESS_HEAD_YAW = 50
+    # STIFFNESS_ARM_ALL = 50
+
+    # # Damping
+    # DAMPING_HIP_PITCH = 7.0
+    # DAMPING_HIP_ROLL = 5.0
+    # DAMPING_HIP_YAW = 5.0
+    # DAMPING_KNEE_PITCH = 7.0
+    # DAMPING_ANKLE_PITCH = 0.2
+    # DAMPING_ANKLE_ROLL = 0.2
+    # DAMPING_WAIST_YAW = 5.0
+    # DAMPING_HEAD_YAW = 5.0
+    # DAMPING_ARM_ALL = 5.0
+
+    STIFFNESS_HIP_PITCH = 179
+    STIFFNESS_HIP_ROLL = 179
+    STIFFNESS_HIP_YAW = 155
+    STIFFNESS_KNEE_PITCH = 179
+    STIFFNESS_ANKLE_PITCH = 155
+    STIFFNESS_ANKLE_ROLL = 155
+    STIFFNESS_WAIST_YAW = 155
+    STIFFNESS_HEAD_YAW = 155
+    STIFFNESS_ARM_ALL = 155
+
+    # Damping
+    DAMPING_HIP_PITCH = 11.4
+    DAMPING_HIP_ROLL = 11.4
+    DAMPING_HIP_YAW = 9.8
+    DAMPING_KNEE_PITCH = 11.4
+    DAMPING_ANKLE_PITCH = 9.8
+    DAMPING_ANKLE_ROLL = 9.8
+    DAMPING_WAIST_YAW = 9.8
+    DAMPING_HEAD_YAW = 9.8
+    DAMPING_ARM_ALL = 9.8
+
     # Torque limits
     tau_limit_high = 164.0  # Nm
-    tau_limit_low = 41.0    # Nm
+    tau_limit_low = 61.0    # Nm
     
-    # Action scales (from training config) - in Isaac Lab order
+    # Action scales (copied from pm01.py, 0.25 * effort / stiffness for each joint)
+    # action_scales = {
+    #     'j00_hip_pitch_l': 0.5857142857142857,
+    #     'j06_hip_pitch_r': 0.5857142857142857,
+    #     'j01_hip_roll_l': 0.82,
+    #     'j07_hip_roll_r': 0.82,
+    #     'j02_hip_yaw_l': 0.305,
+    #     'j08_hip_yaw_r': 0.305,
+    #     'j03_knee_pitch_l': 0.5857142857142857,
+    #     'j09_knee_pitch_r': 0.5857142857142857,
+    #     'j04_ankle_pitch_l': 0.7625,
+    #     'j10_ankle_pitch_r': 0.7625,
+    #     'j05_ankle_roll_l': 0.7625,
+    #     'j11_ankle_roll_r': 0.7625,
+    #     'j12_waist_yaw': 0.305,
+    #     'j13_shoulder_pitch_l': 0.305,
+    #     'j14_shoulder_roll_l': 0.305,
+    #     'j15_shoulder_yaw_l': 0.305,
+    #     'j16_elbow_pitch_l': 0.305,
+    #     'j17_elbow_yaw_l': 0.305,
+    #     'j18_shoulder_pitch_r': 0.305,
+    #     'j19_shoulder_roll_r': 0.305,
+    #     'j20_shoulder_yaw_r': 0.305,
+    #     'j21_elbow_pitch_r': 0.305,
+    #     'j22_elbow_yaw_r': 0.305,
+    #     'j23_head_yaw': 0.305,
+    # }
+
     action_scales = {
         'j00_hip_pitch_l': 0.22913229617061878,
         'j01_hip_roll_l': 0.22913229617061878,
@@ -384,7 +444,7 @@ def build_observation(robot_state, motion, time_step, last_action, cfg):
     # obs.append(rot_mat[:, 1])  # Second column
     
     # 4. base_lin_vel
-    obs.append(robot_state['base_lin_vel'])
+    # obs.append(robot_state['base_lin_vel'])
     
     # 5. base_ang_vel
     obs.append(robot_state['base_ang_vel'])
@@ -395,7 +455,7 @@ def build_observation(robot_state, motion, time_step, last_action, cfg):
     obs.append(joint_pos_rel)
     
     # 7. joint_vel
-    obs.append(robot_state['joint_vel'])
+    obs.append(robot_state['joint_vel'] * 1)
     
     # 8. last_action
     obs.append(last_action)
@@ -427,14 +487,50 @@ def pd_control(target_pos_isaac, current_pos_isaac, current_vel_isaac, cfg):
     kd = np.zeros(cfg.num_actions)
     tau_limit = np.zeros(cfg.num_actions)
     
+    # Assign stiffness and damping per joint from pm01.py
     for i, name in enumerate(cfg.isaac_joint_names):
-        if name in cfg.high_torque_joints:
-            kp[i] = cfg.kp_high
-            kd[i] = cfg.kd_high
+        if name in ['j00_hip_pitch_l', 'j06_hip_pitch_r']:
+            kp[i] = cfg.STIFFNESS_HIP_PITCH
+            kd[i] = cfg.DAMPING_HIP_PITCH
             tau_limit[i] = cfg.tau_limit_high
+        elif name in ['j01_hip_roll_l', 'j07_hip_roll_r']:
+            kp[i] = cfg.STIFFNESS_HIP_ROLL
+            kd[i] = cfg.DAMPING_HIP_ROLL
+            tau_limit[i] = cfg.tau_limit_high
+        elif name in ['j02_hip_yaw_l', 'j08_hip_yaw_r']:
+            kp[i] = cfg.STIFFNESS_HIP_YAW
+            kd[i] = cfg.DAMPING_HIP_YAW
+            tau_limit[i] = cfg.tau_limit_low
+        elif name in ['j03_knee_pitch_l', 'j09_knee_pitch_r']:
+            kp[i] = cfg.STIFFNESS_KNEE_PITCH
+            kd[i] = cfg.DAMPING_KNEE_PITCH
+            tau_limit[i] = cfg.tau_limit_high
+        elif name in ['j04_ankle_pitch_l', 'j10_ankle_pitch_r']:
+            kp[i] = cfg.STIFFNESS_ANKLE_PITCH
+            kd[i] = cfg.DAMPING_ANKLE_PITCH
+            tau_limit[i] = cfg.tau_limit_low
+        elif name in ['j05_ankle_roll_l', 'j11_ankle_roll_r']:
+            kp[i] = cfg.STIFFNESS_ANKLE_ROLL
+            kd[i] = cfg.DAMPING_ANKLE_ROLL
+            tau_limit[i] = cfg.tau_limit_low
+        elif name == 'j12_waist_yaw':
+            kp[i] = cfg.STIFFNESS_WAIST_YAW
+            kd[i] = cfg.DAMPING_WAIST_YAW
+            tau_limit[i] = cfg.tau_limit_low
+        elif name == 'j23_head_yaw':
+            kp[i] = cfg.STIFFNESS_HEAD_YAW
+            kd[i] = cfg.DAMPING_HEAD_YAW
+            tau_limit[i] = cfg.tau_limit_low
+        elif name in [
+            'j13_shoulder_pitch_l', 'j14_shoulder_roll_l', 'j15_shoulder_yaw_l', 'j16_elbow_pitch_l', 'j17_elbow_yaw_l',
+            'j18_shoulder_pitch_r', 'j19_shoulder_roll_r', 'j20_shoulder_yaw_r', 'j21_elbow_pitch_r', 'j22_elbow_yaw_r'
+        ]:
+            kp[i] = cfg.STIFFNESS_ARM_ALL
+            kd[i] = cfg.DAMPING_ARM_ALL
+            tau_limit[i] = cfg.tau_limit_low
         else:
-            kp[i] = cfg.kp_low
-            kd[i] = cfg.kd_low
+            kp[i] = 50.0
+            kd[i] = 5.0
             tau_limit[i] = cfg.tau_limit_low
     
     # PD control in Isaac Lab order
@@ -518,7 +614,7 @@ def load_policy(policy_path=None, onnx_path=None, wandb_path=None):
                 def __init__(self):
                     super().__init__()
                     self.net = torch.nn.Sequential(
-                        torch.nn.Linear(78, 512),
+                        torch.nn.Linear(75, 512),
                         torch.nn.ELU(),
                         torch.nn.Linear(512, 256),
                         torch.nn.ELU(),
@@ -563,7 +659,7 @@ def find_mujoco_model():
     
     possible_paths = [
         # GMR assets folder
-        "/home/marmot/Ritwik/GMR/assets/engineai_pm01/pm_v2.xml",
+        "/media/marmot/606de469-2f76-4155-82bc-e2e657636ad7/Ritwik/GMR/assets/engineai_pm01/pm_v2.xml",
         # Relative paths
         "../GMR/assets/engineai_pm01/pm_v2.xml",
         "../../GMR/assets/engineai_pm01/pm_v2.xml",
@@ -616,7 +712,17 @@ def run_sim2sim(policy_fn, motion, cfg, args):
     
     # Simulation loop
     last_action = np.zeros(cfg.num_actions, dtype=np.float32)
-    action_scales = np.array([cfg.action_scales[name] for name in cfg.isaac_joint_names])
+    # Use action scales from config, warn if any joint is missing, and print order for debug
+    action_scales = []
+    print("[DEBUG] Action scale joint order:")
+    for i, name in enumerate(cfg.isaac_joint_names):
+        if name not in cfg.action_scales:
+            print(f"[WARNING] Joint {name} missing from action_scales! Using 1.0 as fallback.")
+            action_scales.append(1.0)
+        else:
+            print(f"  {i}: {name} -> {cfg.action_scales[name]}")
+            action_scales.append(cfg.action_scales[name])
+    action_scales = np.array(action_scales)
     
     step_count = 0
     policy_step = 0
@@ -720,7 +826,7 @@ def main():
     parser.add_argument("--motion_file", type=str, required=True, help="Path to motion .npz file")
     parser.add_argument("--mujoco_model", type=str, default=None, help="Path to MuJoCo XML model")
     parser.add_argument("--headless", action="store_true", help="Run without viewer")
-    parser.add_argument("--duration", type=float, default=60.0, help="Simulation duration in seconds")
+    parser.add_argument("--duration", type=float, default=600.0, help="Simulation duration in seconds")
     parser.add_argument("--debug", action="store_true", help="Print debug info")
     
     args = parser.parse_args()

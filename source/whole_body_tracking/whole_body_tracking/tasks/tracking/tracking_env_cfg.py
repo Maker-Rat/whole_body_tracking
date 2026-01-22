@@ -167,6 +167,28 @@ class EventCfg:
         },
     )
 
+    # randomize_rigid_body_mass_base = EventTerm(
+    #     func=mdp.randomize_rigid_body_mass,
+    #     mode="startup",
+    #     params={
+    #         "asset_cfg": SceneEntityCfg("robot", body_names=""),
+    #         "mass_distribution_params": (-1.0, 3.0),
+    #         "operation": "add",
+    #         "recompute_inertia": True,
+    #     },
+    # )
+
+    randomize_rigid_body_mass_others = EventTerm(
+        func=mdp.randomize_rigid_body_mass,
+        mode="startup",
+        params={
+            "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
+            "mass_distribution_params": (0.7, 1.3),
+            "operation": "scale",
+            "recompute_inertia": True,
+        },
+    )
+
     add_joint_default_pos = EventTerm(
         func=mdp.randomize_joint_default_pos,
         mode="startup",
@@ -181,10 +203,20 @@ class EventCfg:
         func=mdp.randomize_rigid_body_com,
         mode="startup",
         params={
-            "asset_cfg": SceneEntityCfg("robot", body_names="torso_link"),
-            "com_range": {"x": (-0.025, 0.025), "y": (-0.05, 0.05), "z": (-0.05, 0.05)},
+            "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
+            "com_range": {"x": (-0.05, 0.05), "y": (-0.05, 0.05), "z": (-0.05, 0.05)},
         },
     )
+
+    # randomize_apply_external_force_torque = EventTerm(
+    #     func=mdp.apply_external_force_torque,
+    #     mode="reset",
+    #     params={
+    #         "asset_cfg": SceneEntityCfg("robot", body_names=""),
+    #         "force_range": (-10.0, 10.0),
+    #         "torque_range": (-10.0, 10.0),
+    #     },
+    # )
 
     # interval
     push_robot = EventTerm(
@@ -192,6 +224,28 @@ class EventCfg:
         mode="interval",
         interval_range_s=(1.0, 3.0),
         params={"velocity_range": VELOCITY_RANGE},
+    )
+
+    randomize_reset_joints = EventTerm(
+        func=mdp.reset_joints_by_scale,
+        # func=mdp.reset_joints_by_offset,
+        mode="reset",
+        params={
+            "position_range": (1.0, 1.0),
+            "velocity_range": (0.0, 0.0),
+        },
+    )
+
+    randomize_actuator_gains = EventTerm(
+        func=mdp.randomize_actuator_gains,
+        mode="reset",
+        params={
+            "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
+            "stiffness_distribution_params": (0.75, 1.25),
+            "damping_distribution_params": (0.75, 1.25),
+            "operation": "scale",
+            "distribution": "uniform",
+        },
     )
 
 

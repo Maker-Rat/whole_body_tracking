@@ -7,6 +7,16 @@ Usage:
     python scripts/compute_fk_pm01.py --input_file scripts/tennis.npz --output_file scripts/tennis_fk.npz
 """
 
+# from isaacsim import SimulationApp
+
+# simulation_app = SimulationApp({
+#     "headless": True,
+#     "enable_extensions": [
+#         "isaacsim.asset.importer.urdf",  # new
+#         "omni.isaac.urdf",               # old (safe to include)
+#     ],
+# })
+
 import argparse
 import numpy as np
 import torch
@@ -19,11 +29,16 @@ parser.add_argument("--output_file", type=str, required=True, help="Output npz f
 
 AppLauncher.add_app_launcher_args(parser)
 args_cli = parser.parse_args()
+
+# must be set BEFORE AppLauncher(...)
 args_cli.headless = True
+args_cli.enable_extensions = [
+    "isaacsim.asset.importer.urdf",  # Isaac Sim 4.5+
+    "omni.isaac.urdf",               # legacy fallback
+]
 
 app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
-
 import isaaclab.sim as sim_utils
 from isaaclab.assets import Articulation, ArticulationCfg, AssetBaseCfg
 from isaaclab.scene import InteractiveScene, InteractiveSceneCfg
