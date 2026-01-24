@@ -85,35 +85,22 @@ def feet_contact_time(env: ManagerBasedRLEnv, sensor_cfg: SceneEntityCfg, thresh
 def feet_slip_penalty(
     env: ManagerBasedRLEnv,
     sensor_cfg: SceneEntityCfg,
-    asset_cfg: SceneEntityCfg,
 ) -> torch.Tensor:
-    """Penalize feet slipping when in contact with the ground.
-    
-    This computes the linear velocity of the feet bodies in the xy-plane and penalizes
-    movement when the feet are in contact with the ground.
-    
-    Args:
-        env: The environment.
-        sensor_cfg: The contact sensor configuration for the feet.
-        asset_cfg: The asset configuration specifying the feet bodies.
-        
-    Returns:
-        Penalty based on feet linear velocity when in contact.
-    """
+    """Penalize feet slipping when in contact with the ground."""
     # Get contact sensor
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
     
-    # Get the asset (robot)
-    asset = env.scene[asset_cfg.name]
+    # Get the robot asset
+    asset = env.scene["robot"]
     
     # Get contact forces for feet bodies
-    net_contact_forces = contact_sensor.data.net_forces_w_history[:, :, sensor_cfg.body_ids]
+    net_contact_forces = contact_sensor.data.net_forces_w[:, sensor_cfg.body_ids]
     
     # Check if feet are in contact (force magnitude > threshold)
-    is_contact = torch.max(torch.norm(net_contact_forces, dim=-1), dim=1)[0] > 1.0
+    is_contact = torch.norm(net_contact_forces, dim=-1) > 1.0
     
     # Get feet linear velocities (xy-plane only)
-    feet_velocities = asset.data.body_lin_vel_w[:, sensor_cfg.body_ids, :2]  # Only x and y components
+    feet_velocities = asset.data.body_lin_vel_w[:, sensor_cfg.body_ids, :2]
     
     # Compute slip magnitude
     feet_slip = torch.norm(feet_velocities, dim=-1)

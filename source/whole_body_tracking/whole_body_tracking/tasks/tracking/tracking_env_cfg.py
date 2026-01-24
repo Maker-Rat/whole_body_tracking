@@ -311,7 +311,6 @@ class RewardsCfg:
         weight=-0.05,
         params={
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=["link_ankle_roll_l", "link_ankle_roll_r"]),
-            "asset_cfg": SceneEntityCfg("robot", body_names=["link_ankle_roll_l", "link_ankle_roll_r"]),
         },
     )
 
