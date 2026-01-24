@@ -160,41 +160,42 @@ class EventCfg:
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
-            "static_friction_range": (0.3, 1.6),
-            "dynamic_friction_range": (0.3, 1.2),
+            "static_friction_range": (0.2, 1.6),
+            "dynamic_friction_range": (0.2, 1.3),
             "restitution_range": (0.0, 0.5),
             "num_buckets": 64,
         },
     )
 
-    # randomize_rigid_body_mass_base = EventTerm(
-    #     func=mdp.randomize_rigid_body_mass,
-    #     mode="startup",
-    #     params={
-    #         "asset_cfg": SceneEntityCfg("robot", body_names=""),
-    #         "mass_distribution_params": (-1.0, 3.0),
-    #         "operation": "add",
-    #         "recompute_inertia": True,
-    #     },
-    # )
+    randomize_rigid_body_mass_base = EventTerm(
+        func=mdp.randomize_rigid_body_mass,
+        mode="startup",
+        params={
+            "asset_cfg": SceneEntityCfg("robot", body_names="link_torso_yaw"),
+            "mass_distribution_params": (-4.0, 4.0),
+            "operation": "add",
+            "recompute_inertia": True,
+        },
+    )
 
     randomize_rigid_body_mass_others = EventTerm(
         func=mdp.randomize_rigid_body_mass,
         mode="startup",
         params={
-            "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
-            "mass_distribution_params": (0.7, 1.3),
+            "asset_cfg": SceneEntityCfg("robot", body_names="^(?!link_torso_yaw$).*"),
+            "mass_distribution_params": (0.8, 1.2),
             "operation": "scale",
             "recompute_inertia": True,
         },
     )
 
-    add_joint_default_pos = EventTerm(
+    # Motor offset randomization
+    randomize_motor_offset = EventTerm(
         func=mdp.randomize_joint_default_pos,
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", joint_names=[".*"]),
-            "pos_distribution_params": (-0.01, 0.01),
+            "pos_distribution_params": (-0.035, 0.035),
             "operation": "add",
         },
     )
@@ -204,19 +205,9 @@ class EventCfg:
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
-            "com_range": {"x": (-0.05, 0.05), "y": (-0.05, 0.05), "z": (-0.05, 0.05)},
+            "com_range": {"x": (-0.06, 0.06), "y": (-0.06, 0.06), "z": (-0.06, 0.06)},
         },
     )
-
-    # randomize_apply_external_force_torque = EventTerm(
-    #     func=mdp.apply_external_force_torque,
-    #     mode="reset",
-    #     params={
-    #         "asset_cfg": SceneEntityCfg("robot", body_names=""),
-    #         "force_range": (-10.0, 10.0),
-    #         "torque_range": (-10.0, 10.0),
-    #     },
-    # )
 
     # interval
     push_robot = EventTerm(
@@ -226,9 +217,9 @@ class EventCfg:
         params={"velocity_range": VELOCITY_RANGE},
     )
 
+    # reset
     randomize_reset_joints = EventTerm(
         func=mdp.reset_joints_by_scale,
-        # func=mdp.reset_joints_by_offset,
         mode="reset",
         params={
             "position_range": (1.0, 1.0),
@@ -241,8 +232,20 @@ class EventCfg:
         mode="reset",
         params={
             "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
-            "stiffness_distribution_params": (0.75, 1.25),
-            "damping_distribution_params": (0.75, 1.25),
+            "stiffness_distribution_params": (0.8, 1.2),
+            "damping_distribution_params": (0.8, 1.2),
+            "operation": "scale",
+            "distribution": "uniform",
+        },
+    )
+
+    # Torque randomization (effort limit)
+    randomize_effort_limit = EventTerm(
+        func=mdp.randomize_actuator_effort_limit,
+        mode="reset",
+        params={
+            "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
+            "effort_distribution_params": (0.8, 1.2),
             "operation": "scale",
             "distribution": "uniform",
         },
@@ -302,6 +305,16 @@ class RewardsCfg:
             "threshold": 1.0,
         },
     )
+
+    feet_slip = RewTerm(
+        func=mdp.feet_slip_penalty,
+        weight=-0.05,
+        params={
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=["link_ankle_roll_l", "link_ankle_roll_r"]),
+            "asset_cfg": SceneEntityCfg("robot", body_names=["link_ankle_roll_l", "link_ankle_roll_r"]),
+        },
+    )
+
 
 
 @configclass

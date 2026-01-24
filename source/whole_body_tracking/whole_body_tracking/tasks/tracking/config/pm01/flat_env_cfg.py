@@ -37,15 +37,6 @@ class PM01FlatEnvCfg(TrackingEnvCfg):
             "link_elbow_yaw_r",       # right wrist/hand
         ]
 
-        # Override event: base_com for PM01 torso link
-        self.events.base_com = EventTerm(
-            func=mdp.randomize_rigid_body_com,
-            mode="startup",
-            params={
-                "asset_cfg": SceneEntityCfg("robot", body_names="link_torso_yaw"),
-                "com_range": {"x": (-0.025, 0.025), "y": (-0.05, 0.05), "z": (-0.05, 0.05)},
-            },
-        )
 
         # Override reward: undesired_contacts for PM01 body names
         # Only allow contacts on feet (ankle_roll) and hands (elbow_yaw)

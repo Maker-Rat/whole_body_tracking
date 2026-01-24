@@ -226,3 +226,60 @@ def reset_root_state_uniform(
         # set into the physics simulation
         asset.write_root_pose_to_sim(torch.cat([positions, orientations], dim=-1), env_ids=non_pit_env_ids)
         asset.write_root_velocity_to_sim(velocities, env_ids=non_pit_env_ids)
+
+
+def randomize_actuator_effort_limit(
+    env: ManagerBasedEnv,
+    env_ids: torch.Tensor | None,
+    asset_cfg: SceneEntityCfg,
+    effort_distribution_params: tuple[float, float],
+    operation: Literal["add", "scale", "abs"] = "scale",
+    distribution: Literal["uniform", "log_uniform", "gaussian"] = "uniform",
+):
+    """Randomize the effort limits of actuators.
+    
+    This randomizes the maximum torque that can be applied by each actuator,
+    simulating variations in motor performance.
+    
+    Args:
+        env: The environment.
+        env_ids: The environment IDs to randomize. If None, all environments are randomized.
+        asset_cfg: The asset configuration specifying which joints to randomize.
+        effort_distribution_params: The distribution parameters for effort limit randomization.
+        operation: The operation to perform. Options: 'add', 'scale', 'abs'.
+        distribution: The distribution to sample from. Options: 'uniform', 'log_uniform', 'gaussian'.
+    """
+    # extract the used quantities (to enable type-hinting)
+    asset: Articulation = env.scene[asset_cfg.name]
+    
+    # resolve environment ids
+    if env_ids is None:
+        env_ids = torch.arange(env.scene.num_envs, device=asset.device)
+    
+    # resolve joint indices
+    if asset_cfg.joint_ids == slice(None):
+        joint_ids = slice(None)
+    else:
+        joint_ids = torch.tensor(asset_cfg.joint_ids, dtype=torch.int, device=asset.device)
+    
+    # iterate over all actuator groups and randomize their effort limits
+    for actuator_name, actuator in asset.actuators.items():
+        # get current effort limits for this actuator group
+        effort_limits = actuator.effort_limit.clone()
+        
+        # randomize effort limits
+        effort_limits = _randomize_prop_by_op(
+            effort_limits,
+            effort_distribution_params,
+            env_ids,
+            joint_ids,
+            operation=operation,
+            distribution=distribution,
+        )
+        
+        # set the randomized effort limits back
+        if env_ids != slice(None) and joint_ids != slice(None):
+            env_ids_indexed = env_ids[:, None]
+            actuator.effort_limit[env_ids_indexed, joint_ids] = effort_limits[env_ids_indexed, joint_ids]
+        else:
+            actuator.effort_limit[env_ids, joint_ids] = effort_limits[env_ids, joint_ids]
