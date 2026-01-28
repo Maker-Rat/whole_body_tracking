@@ -123,6 +123,9 @@ class ObservationsCfg:
         #     func=mdp.motion_anchor_ori_b, params={"command_name": "motion"}, noise=Unoise(n_min=-0.05, n_max=0.05)
         # )
         # base_lin_vel = ObsTerm(func=mdp.base_lin_vel, noise=Unoise(n_min=-0.5, n_max=0.5))
+        robot_anchor_euler = ObsTerm(
+            func=mdp.robot_anchor_euler_xyz_from_matrix, params={"command_name": "motion"}, noise=Unoise(n_min=-0.05, n_max=0.05)
+        )
         base_ang_vel = ObsTerm(func=mdp.base_ang_vel, noise=Unoise(n_min=-0.2, n_max=0.2))
         joint_pos = ObsTerm(func=mdp.joint_pos_rel, noise=Unoise(n_min=-0.01, n_max=0.01))
         joint_vel = ObsTerm(func=mdp.joint_vel_rel, noise=Unoise(n_min=-0.5, n_max=0.5))
@@ -137,6 +140,7 @@ class ObservationsCfg:
         command = ObsTerm(func=mdp.generated_commands, params={"command_name": "motion"})
         motion_anchor_pos_b = ObsTerm(func=mdp.motion_anchor_pos_b, params={"command_name": "motion"})
         motion_anchor_ori_b = ObsTerm(func=mdp.motion_anchor_ori_b, params={"command_name": "motion"})
+        robot_anchor_euler = ObsTerm(func=mdp.robot_anchor_euler_xyz_from_matrix, params={"command_name": "motion"})
         body_pos = ObsTerm(func=mdp.robot_body_pos_b, params={"command_name": "motion"})
         body_ori = ObsTerm(func=mdp.robot_body_ori_b, params={"command_name": "motion"})
         base_lin_vel = ObsTerm(func=mdp.base_lin_vel)
@@ -171,7 +175,7 @@ class EventCfg:
         func=mdp.randomize_rigid_body_mass,
         mode="startup",
         params={
-            "asset_cfg": SceneEntityCfg("robot", body_names="link_torso_yaw"),
+            "asset_cfg": SceneEntityCfg("robot", body_names="link_base"),
             "mass_distribution_params": (-4.0, 4.0),
             "operation": "add",
             "recompute_inertia": True,
@@ -182,7 +186,7 @@ class EventCfg:
         func=mdp.randomize_rigid_body_mass,
         mode="startup",
         params={
-            "asset_cfg": SceneEntityCfg("robot", body_names="^(?!link_torso_yaw$).*"),
+            "asset_cfg": SceneEntityCfg("robot", body_names="^(?!link_base$).*"),
             "mass_distribution_params": (0.8, 1.2),
             "operation": "scale",
             "recompute_inertia": True,
@@ -240,14 +244,41 @@ class EventCfg:
     )
 
     # Torque randomization (effort limit)
-    randomize_effort_limit = EventTerm(
-        func=mdp.randomize_actuator_effort_limit,
+    # randomize_effort_limit = EventTerm(
+    #     func=mdp.randomize_actuator_effort_limit,
+    #     mode="reset",
+    #     params={
+    #         "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
+    #         "effort_distribution_params": (0.8, 1.2),
+    #         "operation": "scale",
+    #         "distribution": "uniform",
+    #     },
+    # )
+
+    # Action lag randomization
+    randomize_action_lag = EventTerm(
+        func=mdp.randomize_action_lag,
         mode="reset",
         params={
-            "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
-            "effort_distribution_params": (0.8, 1.2),
-            "operation": "scale",
-            "distribution": "uniform",
+            "action_lag_range": (2, 5),  # 2-5 timesteps of action lag
+        },
+    )
+
+    # Motor observation lag randomization
+    randomize_motor_obs_lag = EventTerm(
+        func=mdp.randomize_motor_obs_lag,
+        mode="reset",
+        params={
+            "motor_lag_range": (5, 15),  # 5-15 timesteps of motor sensor lag
+        },
+    )
+
+    # IMU observation lag randomization
+    randomize_imu_obs_lag = EventTerm(
+        func=mdp.randomize_imu_obs_lag,
+        mode="reset",
+        params={
+            "imu_lag_range": (1, 10),  # 1-10 timesteps of IMU sensor lag
         },
     )
 
@@ -306,13 +337,13 @@ class RewardsCfg:
         },
     )
 
-    feet_slip = RewTerm(
-        func=mdp.feet_slip_penalty,
-        weight=-0.05,
-        params={
-            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=["link_ankle_roll_l", "link_ankle_roll_r"]),
-        },
-    )
+    # feet_slip = RewTerm(
+    #     func=mdp.feet_slip_penalty,
+    #     weight=-0.05,
+    #     params={
+    #         "sensor_cfg": SceneEntityCfg("contact_forces", body_names=["link_ankle_roll_l", "link_ankle_roll_r"]),
+    #     },
+    # )
 
 
 

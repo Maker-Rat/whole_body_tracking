@@ -7,7 +7,9 @@ from isaaclab.utils import configclass
 from whole_body_tracking.robots.pm01 import PM01_ACTION_SCALE, PM01_CFG
 from whole_body_tracking.tasks.tracking.config.pm01.agents.rsl_rl_ppo_cfg import LOW_FREQ_SCALE
 from whole_body_tracking.tasks.tracking.tracking_env_cfg import TrackingEnvCfg
+from isaaclab.envs.wrappers import ObservationStackWrapper
 import whole_body_tracking.tasks.tracking.mdp as mdp
+
 
 
 @configclass
@@ -17,7 +19,7 @@ class PM01FlatEnvCfg(TrackingEnvCfg):
 
         self.scene.robot = PM01_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
         self.actions.joint_pos.scale = PM01_ACTION_SCALE
-        self.commands.motion.anchor_body_name = "link_torso_yaw"
+        self.commands.motion.anchor_body_name = "link_base"
         # PM01 body names for motion tracking
         # Following the IK config mapping pattern: major links for tracking
         self.commands.motion.body_names = [
@@ -36,7 +38,6 @@ class PM01FlatEnvCfg(TrackingEnvCfg):
             "link_elbow_pitch_r",     # right elbow
             "link_elbow_yaw_r",       # right wrist/hand
         ]
-
 
         # Override reward: undesired_contacts for PM01 body names
         # Only allow contacts on feet (ankle_roll) and hands (elbow_yaw)
@@ -67,6 +68,15 @@ class PM01FlatEnvCfg(TrackingEnvCfg):
                     "link_elbow_yaw_r",
                 ],
             },
+        )
+
+        # Add observation stacking wrapper (10 frames)
+        self.wrappers = getattr(self, "wrappers", [])
+        self.wrappers.append(
+            ObservationStackWrapper(
+                num_stack=10,  # Number of stacked observations
+                concat_axis=-1  # Stack along the last axis (feature dimension)
+            )
         )
 
 
