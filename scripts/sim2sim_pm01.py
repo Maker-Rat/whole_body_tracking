@@ -24,7 +24,7 @@ class PM01Config:
     
     # Simulation
     dt = 0.001  # MuJoCo timestep (1000 Hz)
-    decimation = 20  # Policy runs at 50 Hz (1000/20 = 50)
+    decimation = 10  # Policy runs at 50 Hz (1000/20 = 50)
     sim_duration = 60.0  # seconds
     
     # Robot
@@ -34,25 +34,24 @@ class PM01Config:
     # PD gains (from pm01.py)
     # Stiffness
     STIFFNESS_HIP_PITCH = 70
-    STIFFNESS_HIP_ROLL = 50
+    STIFFNESS_HIP_ROLL = 70
     STIFFNESS_HIP_YAW = 50
     STIFFNESS_KNEE_PITCH = 70
     STIFFNESS_ANKLE_PITCH = 20
     STIFFNESS_ANKLE_ROLL = 20
     STIFFNESS_WAIST_YAW = 50
     STIFFNESS_HEAD_YAW = 50
-    STIFFNESS_ARM_ALL = 50
+    STIFFNESS_ARM_ALL = 155
 
-    # Damping
     DAMPING_HIP_PITCH = 7.0
-    DAMPING_HIP_ROLL = 5.0
+    DAMPING_HIP_ROLL = 7.0
     DAMPING_HIP_YAW = 5.0
     DAMPING_KNEE_PITCH = 7.0
     DAMPING_ANKLE_PITCH = 0.2
     DAMPING_ANKLE_ROLL = 0.2
     DAMPING_WAIST_YAW = 5.0
     DAMPING_HEAD_YAW = 5.0
-    DAMPING_ARM_ALL = 5.0
+    DAMPING_ARM_ALL = 9.8
 
     # STIFFNESS_HIP_PITCH = 179
     # STIFFNESS_HIP_ROLL = 179
@@ -80,32 +79,32 @@ class PM01Config:
     tau_limit_low = 61.0    # Nm
     
     # Action scales (copied from pm01.py, 0.25 * effort / stiffness for each joint)
-    action_scales = {
-        'j00_hip_pitch_l': 0.5857142857142857,
-        'j06_hip_pitch_r': 0.5857142857142857,
-        'j01_hip_roll_l': 0.82,
-        'j07_hip_roll_r': 0.82,
-        'j02_hip_yaw_l': 0.305,
-        'j08_hip_yaw_r': 0.305,
-        'j03_knee_pitch_l': 0.5857142857142857,
-        'j09_knee_pitch_r': 0.5857142857142857,
-        'j04_ankle_pitch_l': 0.7625,
-        'j10_ankle_pitch_r': 0.7625,
-        'j05_ankle_roll_l': 0.7625,
-        'j11_ankle_roll_r': 0.7625,
-        'j12_waist_yaw': 0.305,
-        'j13_shoulder_pitch_l': 0.305,
-        'j14_shoulder_roll_l': 0.305,
-        'j15_shoulder_yaw_l': 0.305,
-        'j16_elbow_pitch_l': 0.305,
-        'j17_elbow_yaw_l': 0.305,
-        'j18_shoulder_pitch_r': 0.305,
-        'j19_shoulder_roll_r': 0.305,
-        'j20_shoulder_yaw_r': 0.305,
-        'j21_elbow_pitch_r': 0.305,
-        'j22_elbow_yaw_r': 0.305,
-        'j23_head_yaw': 0.305,
-    }
+    # action_scales = {
+    #     'j00_hip_pitch_l': 0.5857142857142857,
+    #     'j06_hip_pitch_r': 0.5857142857142857,
+    #     'j01_hip_roll_l': 0.82,
+    #     'j07_hip_roll_r': 0.82,
+    #     'j02_hip_yaw_l': 0.305,
+    #     'j08_hip_yaw_r': 0.305,
+    #     'j03_knee_pitch_l': 0.5857142857142857,
+    #     'j09_knee_pitch_r': 0.5857142857142857,
+    #     'j04_ankle_pitch_l': 0.7625,
+    #     'j10_ankle_pitch_r': 0.7625,
+    #     'j05_ankle_roll_l': 0.7625,
+    #     'j11_ankle_roll_r': 0.7625,
+    #     'j12_waist_yaw': 0.305,
+    #     'j13_shoulder_pitch_l': 0.305,
+    #     'j14_shoulder_roll_l': 0.305,
+    #     'j15_shoulder_yaw_l': 0.305,
+    #     'j16_elbow_pitch_l': 0.305,
+    #     'j17_elbow_yaw_l': 0.305,
+    #     'j18_shoulder_pitch_r': 0.305,
+    #     'j19_shoulder_roll_r': 0.305,
+    #     'j20_shoulder_yaw_r': 0.305,
+    #     'j21_elbow_pitch_r': 0.305,
+    #     'j22_elbow_yaw_r': 0.305,
+    #     'j23_head_yaw': 0.305,
+    # }
 
     # action_scales = {
     #     'j00_hip_pitch_l': 0.22913229617061878,
@@ -133,6 +132,33 @@ class PM01Config:
     #     'j22_elbow_yaw_r': 0.08405714023137756,
     #     'j23_head_yaw': 0.08405714023137756,
     # }
+
+    action_scales = {
+        'j00_hip_pitch_l': 0.5857142857142857,
+        'j06_hip_pitch_r': 0.5857142857142857,
+        'j01_hip_roll_l': 0.5857142857142857,
+        'j07_hip_roll_r': 0.5857142857142857,
+        'j02_hip_yaw_l': 0.305,
+        'j08_hip_yaw_r': 0.305,
+        'j03_knee_pitch_l': 0.5857142857142857,
+        'j09_knee_pitch_r': 0.5857142857142857,
+        'j04_ankle_pitch_l': 0.7625,
+        'j10_ankle_pitch_r': 0.7625,
+        'j05_ankle_roll_l': 0.7625,
+        'j11_ankle_roll_r': 0.7625,
+        'j12_waist_yaw': 0.305,
+        'j13_shoulder_pitch_l': 0.098405714023137756,
+        'j14_shoulder_roll_l': 0.098405714023137756,
+        'j15_shoulder_yaw_l': 0.098405714023137756,
+        'j16_elbow_pitch_l': 0.098405714023137756,
+        'j17_elbow_yaw_l': 0.098405714023137756,
+        'j18_shoulder_pitch_r': 0.098405714023137756,
+        'j19_shoulder_roll_r': 0.098405714023137756,
+        'j20_shoulder_yaw_r': 0.098405714023137756,
+        'j21_elbow_pitch_r': 0.098405714023137756,
+        'j22_elbow_yaw_r': 0.098405714023137756,
+        'j23_head_yaw': 0.305,
+    }
     
     # Default joint positions (from training config) - in Isaac Lab order
     default_joint_pos = {
@@ -659,10 +685,10 @@ def find_mujoco_model():
     
     possible_paths = [
         # GMR assets folder
-        "/media/marmot/606de469-2f76-4155-82bc-e2e657636ad7/Ritwik/GMR/assets/engineai_pm01/pm_v2.xml",
+        "/media/marmot/606de469-2f76-4155-82bc-e2e657636ad7/Ritwik/GMR/assets/engineai_pm01_mod/pm_v2.xml",
         # Relative paths
-        "../GMR/assets/engineai_pm01/pm_v2.xml",
-        "../../GMR/assets/engineai_pm01/pm_v2.xml",
+        "../GMR/assets/engineai_pm01_mod/pm_v2.xml",
+        "../../GMR/assets/engineai_pm01_mod/pm_v2.xml",
     ]
     
     for path in possible_paths:
@@ -743,7 +769,7 @@ def run_sim2sim(policy_fn, motion, cfg, args):
                 # print("Observation:", obs)
                 
                 # Run policy (pass motion time step for phase info)
-                action = policy_fn(obs, time_step=0)
+                action = policy_fn(obs, time_step=motion_step)
                 # action = np.zeros_like(action)  # TEMPORARY OVERRIDE TO ZERO ACTIONS
                 # action[10] = 10
 
@@ -772,7 +798,7 @@ def run_sim2sim(policy_fn, motion, cfg, args):
                 
                 # Advance motion
                 motion_step += 1
-                if motion_step >= motion.num_frames-75:
+                if motion_step >= motion.num_frames:
                     motion_step = 0
                     print(f"Motion looped at step {step_count}")
                 

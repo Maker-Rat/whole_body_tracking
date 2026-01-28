@@ -14,7 +14,7 @@ from whole_body_tracking.assets import ASSET_DIR
 # STIFFNESS_ANKLE_ROLL = 20
 # STIFFNESS_WAIST_YAW = 50
 # STIFFNESS_HEAD_YAW = 50
-# STIFFNESS_ARM_ALL = 50
+# STIFFNESS_ARM_ALL = 155
 
 # DAMPING_HIP_PITCH = 7.0
 # DAMPING_HIP_ROLL = 7.0
@@ -24,7 +24,7 @@ from whole_body_tracking.assets import ASSET_DIR
 # DAMPING_ANKLE_ROLL = 0.2
 # DAMPING_WAIST_YAW = 5.0
 # DAMPING_HEAD_YAW = 5.0
-# DAMPING_ARM_ALL = 5.0
+# DAMPING_ARM_ALL = 9.8
 
 STIFFNESS_HIP_PITCH = 179
 STIFFNESS_HIP_ROLL = 179
@@ -52,7 +52,7 @@ PM01_CFG = ArticulationCfg(
     spawn=sim_utils.UrdfFileCfg(
         fix_base=False,
         replace_cylinders_with_capsules=True,
-        asset_path=f"{ASSET_DIR}/engineai_description/urdf/pm01.urdf",
+        asset_path=f"{ASSET_DIR}/engineai_description/urdf/pm01_mod.urdf",
         activate_contact_sensors=True,
         rigid_props=sim_utils.RigidBodyPropertiesCfg(
             disable_gravity=False,
