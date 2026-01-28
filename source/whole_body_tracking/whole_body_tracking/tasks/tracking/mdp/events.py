@@ -369,7 +369,7 @@ def randomize_motor_obs_lag(
         device=env.device
     )
     
-    env._motor_lag_timesteps[env_ids] = lag_timesteps
+    env._motor_lag_timesteps[env_ids] = lag_timesteps.to(env._motor_lag_timesteps.dtype)
 
 
 def randomize_imu_obs_lag(
@@ -409,4 +409,4 @@ def randomize_imu_obs_lag(
         device=env.device
     )
     
-    env._imu_lag_timesteps[env_ids] = lag_timesteps
+    env._imu_lag_timesteps[env_ids] = lag_timesteps.to(env._imu_lag_timesteps.dtype)
