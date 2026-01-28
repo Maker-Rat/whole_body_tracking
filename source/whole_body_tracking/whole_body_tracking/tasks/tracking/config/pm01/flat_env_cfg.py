@@ -7,7 +7,7 @@ from isaaclab.utils import configclass
 from whole_body_tracking.robots.pm01 import PM01_ACTION_SCALE, PM01_CFG
 from whole_body_tracking.tasks.tracking.config.pm01.agents.rsl_rl_ppo_cfg import LOW_FREQ_SCALE
 from whole_body_tracking.tasks.tracking.tracking_env_cfg import TrackingEnvCfg
-from isaaclab.envs.wrappers import ObservationStackWrapper
+from whole_body_tracking.utils.observation_stack_wrapper import ObservationStackWrapper
 import whole_body_tracking.tasks.tracking.mdp as mdp
 
 
