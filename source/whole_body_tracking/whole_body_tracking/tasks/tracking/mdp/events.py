@@ -325,7 +325,7 @@ def randomize_action_lag(
         device=env.device
     )
     
-    env._action_lag_timesteps[env_ids] = lag_timesteps
+    env._action_lag_timesteps[env_ids] = lag_timesteps.to(env._action_lag_timesteps.dtype)
 
 
 def randomize_motor_obs_lag(
