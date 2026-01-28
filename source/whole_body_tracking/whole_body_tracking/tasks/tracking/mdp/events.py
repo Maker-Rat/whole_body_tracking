@@ -283,3 +283,130 @@ def randomize_actuator_effort_limit(
             actuator.effort_limit[env_ids_indexed, joint_ids] = effort_limits[env_ids_indexed, joint_ids]
         else:
             actuator.effort_limit[env_ids, joint_ids] = effort_limits[env_ids, joint_ids]
+
+
+def randomize_action_lag(
+    env: ManagerBasedEnv,
+    env_ids: torch.Tensor | None,
+    action_lag_range: tuple[int, int] = (2, 5),
+):
+    """Randomize action lag timesteps for each environment.
+    
+    Action lag simulates the delay between when an action is computed and when it's applied
+    to the robot. This is common in real robots due to communication delays, processing time, etc.
+    
+    Args:
+        env: The environment.
+        env_ids: The environment IDs to randomize. If None, all environments are randomized.
+        action_lag_range: Tuple of (min_lag, max_lag) in timesteps.
+    """
+    # resolve environment ids
+    if env_ids is None:
+        env_ids = torch.arange(env.scene.num_envs, device=env.device)
+    
+    # Initialize action lag buffer if it doesn't exist
+    if not hasattr(env, '_action_lag_timesteps'):
+        env._action_lag_timesteps = torch.zeros(env.scene.num_envs, dtype=torch.int, device=env.device)
+    
+    if not hasattr(env, '_action_history'):
+        # Get action dimension from action manager
+        action_term = env.action_manager.get_term("joint_pos")
+        action_dim = action_term.raw_actions.shape[-1]
+        max_lag = action_lag_range[1]
+        # Initialize circular buffer: (num_envs, max_lag, action_dim)
+        env._action_history = torch.zeros(env.scene.num_envs, max_lag, action_dim, device=env.device)
+        env._action_history_idx = torch.zeros(env.scene.num_envs, dtype=torch.int, device=env.device)
+    
+    # Sample random lag timesteps for each environment
+    lag_timesteps = torch.randint(
+        action_lag_range[0], 
+        action_lag_range[1] + 1, 
+        (len(env_ids),), 
+        device=env.device
+    )
+    
+    env._action_lag_timesteps[env_ids] = lag_timesteps
+
+
+def randomize_motor_obs_lag(
+    env: ManagerBasedEnv,
+    env_ids: torch.Tensor | None,
+    motor_lag_range: tuple[int, int] = (5, 15),
+):
+    """Randomize motor observation lag timesteps for each environment.
+    
+    Motor observation lag simulates the delay in receiving joint position and velocity
+    measurements from encoders. This is realistic as sensor readings take time to be
+    processed and transmitted.
+    
+    Args:
+        env: The environment.
+        env_ids: The environment IDs to randomize. If None, all environments are randomized.
+        motor_lag_range: Tuple of (min_lag, max_lag) in timesteps.
+    """
+    # resolve environment ids
+    if env_ids is None:
+        env_ids = torch.arange(env.scene.num_envs, device=env.device)
+    
+    # Initialize motor lag buffer if it doesn't exist
+    if not hasattr(env, '_motor_lag_timesteps'):
+        env._motor_lag_timesteps = torch.zeros(env.scene.num_envs, dtype=torch.int, device=env.device)
+    
+    if not hasattr(env, '_motor_obs_history'):
+        # Get motor observation dimensions (joint pos + joint vel)
+        asset = env.scene["robot"]
+        num_joints = asset.num_joints
+        max_lag = motor_lag_range[1]
+        # Store both position and velocity: (num_envs, max_lag, num_joints * 2)
+        env._motor_obs_history = torch.zeros(env.scene.num_envs, max_lag, num_joints * 2, device=env.device)
+        env._motor_obs_history_idx = torch.zeros(env.scene.num_envs, dtype=torch.int, device=env.device)
+    
+    # Sample random lag timesteps for each environment
+    lag_timesteps = torch.randint(
+        motor_lag_range[0], 
+        motor_lag_range[1] + 1, 
+        (len(env_ids),), 
+        device=env.device
+    )
+    
+    env._motor_lag_timesteps[env_ids] = lag_timesteps
+
+
+def randomize_imu_obs_lag(
+    env: ManagerBasedEnv,
+    env_ids: torch.Tensor | None,
+    imu_lag_range: tuple[int, int] = (1, 10),
+):
+    """Randomize IMU observation lag timesteps for each environment.
+    
+    IMU observation lag simulates the delay in receiving IMU measurements (angular velocity,
+    orientation). Real IMUs have processing delays and communication latency.
+    
+    Args:
+        env: The environment.
+        env_ids: The environment IDs to randomize. If None, all environments are randomized.
+        imu_lag_range: Tuple of (min_lag, max_lag) in timesteps.
+    """
+    # resolve environment ids
+    if env_ids is None:
+        env_ids = torch.arange(env.scene.num_envs, device=env.device)
+    
+    # Initialize IMU lag buffer if it doesn't exist
+    if not hasattr(env, '_imu_lag_timesteps'):
+        env._imu_lag_timesteps = torch.zeros(env.scene.num_envs, dtype=torch.int, device=env.device)
+    
+    if not hasattr(env, '_imu_obs_history'):
+        max_lag = imu_lag_range[1]
+        # Store euler angles (3) + angular velocity (3) = 6 values
+        env._imu_obs_history = torch.zeros(env.scene.num_envs, max_lag, 6, device=env.device)
+        env._imu_obs_history_idx = torch.zeros(env.scene.num_envs, dtype=torch.int, device=env.device)
+    
+    # Sample random lag timesteps for each environment
+    lag_timesteps = torch.randint(
+        imu_lag_range[0], 
+        imu_lag_range[1] + 1, 
+        (len(env_ids),), 
+        device=env.device
+    )
+    
+    env._imu_lag_timesteps[env_ids] = lag_timesteps

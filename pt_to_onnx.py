@@ -17,7 +17,7 @@ class Actor(torch.nn.Module):
         return self.net(x)
 
 # Load the checkpoint
-ckpt = torch.load("model_6000.pt", map_location="cpu")
+ckpt = torch.load("model_22500.pt", map_location="cpu")
 state_dict = ckpt["model_state_dict"]
 # Map keys if needed (e.g., 'actor.0.weight' -> 'net.0.weight')
 actor_state = {k.replace("actor.", "net."): v for k, v in state_dict.items() if "actor" in k}
@@ -34,7 +34,7 @@ dummy_input = torch.zeros(1, 75)
 torch.onnx.export(
     actor,
     dummy_input,
-    "walk_policy_new.onnx",
+    "new.onnx",
     input_names=["obs"],
     output_names=["actions"],
     opset_version=11,
