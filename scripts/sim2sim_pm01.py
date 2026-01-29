@@ -609,7 +609,7 @@ def build_observation(robot_state, motion, time_step, last_action, cfg, obs_cach
         joint_pos_rel = robot_state['joint_pos'] - default_pos
         obs.append(joint_pos_rel)
         
-        # 4. joint_vel
+        # 4. joint_vel (scaled by 0.05 to match training)
         obs.append(robot_state['joint_vel'] * 1)
         
         # 5. last_action

@@ -71,7 +71,7 @@ PM01_CFG = ArticulationCfg(
         ),
     ),
     init_state=ArticulationCfg.InitialStateCfg(
-        pos=(0.0, 0.0, 0.82),
+        pos=(0.0, 0.0, 0.85),
         joint_pos={
             "j.*_hip_pitch_.*": -0.12,
             "j.*_knee_pitch_.*": 0.24,
