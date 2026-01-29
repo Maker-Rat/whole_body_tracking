@@ -128,7 +128,7 @@ class ObservationsCfg:
         )
         base_ang_vel = ObsTerm(func=mdp.base_ang_vel, noise=Unoise(n_min=-0.2, n_max=0.2))
         joint_pos = ObsTerm(func=mdp.joint_pos_rel, noise=Unoise(n_min=-0.01, n_max=0.01))
-        joint_vel = ObsTerm(func=mdp.joint_vel_rel, noise=Unoise(n_min=-0.5, n_max=0.5))
+        joint_vel = ObsTerm(func=mdp.joint_vel_rel, noise=Unoise(n_min=-0.5, n_max=0.5), scale=0.05)
         actions = ObsTerm(func=mdp.last_action)
 
         def __post_init__(self):
@@ -146,7 +146,7 @@ class ObservationsCfg:
         base_lin_vel = ObsTerm(func=mdp.base_lin_vel)
         base_ang_vel = ObsTerm(func=mdp.base_ang_vel)
         joint_pos = ObsTerm(func=mdp.joint_pos_rel)
-        joint_vel = ObsTerm(func=mdp.joint_vel_rel)
+        joint_vel = ObsTerm(func=mdp.joint_vel_rel, scale=0.05)
         actions = ObsTerm(func=mdp.last_action)
 
     # observation groups
@@ -260,7 +260,7 @@ class EventCfg:
         func=mdp.randomize_action_lag,
         mode="reset",
         params={
-            "action_lag_range": (2, 5),  # 2-5 timesteps of action lag
+            "action_lag_range": (0, 2),  
         },
     )
 
@@ -269,7 +269,7 @@ class EventCfg:
         func=mdp.randomize_motor_obs_lag,
         mode="reset",
         params={
-            "motor_lag_range": (5, 15),  # 5-15 timesteps of motor sensor lag
+            "motor_lag_range": (0, 2),  
         },
     )
 
@@ -278,7 +278,7 @@ class EventCfg:
         func=mdp.randomize_imu_obs_lag,
         mode="reset",
         params={
-            "imu_lag_range": (1, 10),  # 1-10 timesteps of IMU sensor lag
+            "imu_lag_range": (0, 2),  
         },
     )
 
@@ -406,7 +406,7 @@ class TrackingEnvCfg(ManagerBasedRLEnvCfg):
     def __post_init__(self):
         """Post initialization."""
         # general settings
-        self.decimation = 4
+        self.decimation = 2
         self.episode_length_s = 10.0
         # simulation settings
         self.sim.dt = 0.005

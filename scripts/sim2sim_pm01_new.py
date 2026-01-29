@@ -24,7 +24,7 @@ class PM01Config:
     
     # Simulation
     dt = 0.001  # MuJoCo timestep (1000 Hz)
-    decimation = 10  # Policy runs at 50 Hz (1000/20 = 50)
+    decimation = 20  # Policy runs at 50 Hz (1000/20 = 50)
     sim_duration = 60.0  # seconds
     
     # Robot
@@ -33,46 +33,46 @@ class PM01Config:
     
     # PD gains (from pm01.py)
     # Stiffness
-    STIFFNESS_HIP_PITCH = 70
-    STIFFNESS_HIP_ROLL = 70
-    STIFFNESS_HIP_YAW = 50
-    STIFFNESS_KNEE_PITCH = 70
-    STIFFNESS_ANKLE_PITCH = 20
-    STIFFNESS_ANKLE_ROLL = 20
-    STIFFNESS_WAIST_YAW = 50
-    STIFFNESS_HEAD_YAW = 50
-    STIFFNESS_ARM_ALL = 155
-
-    DAMPING_HIP_PITCH = 7.0
-    DAMPING_HIP_ROLL = 7.0
-    DAMPING_HIP_YAW = 5.0
-    DAMPING_KNEE_PITCH = 7.0
-    DAMPING_ANKLE_PITCH = 0.2
-    DAMPING_ANKLE_ROLL = 0.2
-    DAMPING_WAIST_YAW = 5.0
-    DAMPING_HEAD_YAW = 5.0
-    DAMPING_ARM_ALL = 9.8
-
-    # STIFFNESS_HIP_PITCH = 179
-    # STIFFNESS_HIP_ROLL = 179
-    # STIFFNESS_HIP_YAW = 155
-    # STIFFNESS_KNEE_PITCH = 179
-    # STIFFNESS_ANKLE_PITCH = 155
-    # STIFFNESS_ANKLE_ROLL = 155
-    # STIFFNESS_WAIST_YAW = 155
-    # STIFFNESS_HEAD_YAW = 155
+    # STIFFNESS_HIP_PITCH = 70
+    # STIFFNESS_HIP_ROLL = 70
+    # STIFFNESS_HIP_YAW = 50
+    # STIFFNESS_KNEE_PITCH = 70
+    # STIFFNESS_ANKLE_PITCH = 20
+    # STIFFNESS_ANKLE_ROLL = 20
+    # STIFFNESS_WAIST_YAW = 50
+    # STIFFNESS_HEAD_YAW = 50
     # STIFFNESS_ARM_ALL = 155
 
-    # # Damping
-    # DAMPING_HIP_PITCH = 11.4
-    # DAMPING_HIP_ROLL = 11.4
-    # DAMPING_HIP_YAW = 9.8
-    # DAMPING_KNEE_PITCH = 11.4
-    # DAMPING_ANKLE_PITCH = 9.8
-    # DAMPING_ANKLE_ROLL = 9.8
-    # DAMPING_WAIST_YAW = 9.8
-    # DAMPING_HEAD_YAW = 9.8
+    # DAMPING_HIP_PITCH = 7.0
+    # DAMPING_HIP_ROLL = 7.0
+    # DAMPING_HIP_YAW = 5.0
+    # DAMPING_KNEE_PITCH = 7.0
+    # DAMPING_ANKLE_PITCH = 0.2
+    # DAMPING_ANKLE_ROLL = 0.2
+    # DAMPING_WAIST_YAW = 5.0
+    # DAMPING_HEAD_YAW = 5.0
     # DAMPING_ARM_ALL = 9.8
+
+    STIFFNESS_HIP_PITCH = 179
+    STIFFNESS_HIP_ROLL = 179
+    STIFFNESS_HIP_YAW = 155
+    STIFFNESS_KNEE_PITCH = 179
+    STIFFNESS_ANKLE_PITCH = 155
+    STIFFNESS_ANKLE_ROLL = 155
+    STIFFNESS_WAIST_YAW = 155
+    STIFFNESS_HEAD_YAW = 155
+    STIFFNESS_ARM_ALL = 155
+
+    # Damping
+    DAMPING_HIP_PITCH = 11.4
+    DAMPING_HIP_ROLL = 11.4
+    DAMPING_HIP_YAW = 9.8
+    DAMPING_KNEE_PITCH = 11.4
+    DAMPING_ANKLE_PITCH = 9.8
+    DAMPING_ANKLE_ROLL = 9.8
+    DAMPING_WAIST_YAW = 9.8
+    DAMPING_HEAD_YAW = 9.8
+    DAMPING_ARM_ALL = 9.8
 
     # Torque limits
     tau_limit_high = 164.0  # Nm
@@ -106,59 +106,59 @@ class PM01Config:
     #     'j23_head_yaw': 0.305,
     # }
 
-    # action_scales = {
-    #     'j00_hip_pitch_l': 0.22913229617061878,
-    #     'j01_hip_roll_l': 0.22913229617061878,
-    #     'j03_knee_pitch_l': 0.22913229617061878,
-    #     'j06_hip_pitch_r': 0.22913229617061878,
-    #     'j07_hip_roll_r': 0.22913229617061878,
-    #     'j09_knee_pitch_r': 0.22913229617061878,
-    #     'j02_hip_yaw_l': 0.08405714023137756,
-    #     'j08_hip_yaw_r': 0.08405714023137756,
-    #     'j04_ankle_pitch_l': 0.08405714023137756,
-    #     'j05_ankle_roll_l': 0.08405714023137756,
-    #     'j10_ankle_pitch_r': 0.08405714023137756,
-    #     'j11_ankle_roll_r': 0.08405714023137756,
-    #     'j12_waist_yaw': 0.08405714023137756,
-    #     'j13_shoulder_pitch_l': 0.08405714023137756,
-    #     'j14_shoulder_roll_l': 0.08405714023137756,
-    #     'j15_shoulder_yaw_l': 0.08405714023137756,
-    #     'j16_elbow_pitch_l': 0.08405714023137756,
-    #     'j17_elbow_yaw_l': 0.08405714023137756,
-    #     'j18_shoulder_pitch_r': 0.08405714023137756,
-    #     'j19_shoulder_roll_r': 0.08405714023137756,
-    #     'j20_shoulder_yaw_r': 0.08405714023137756,
-    #     'j21_elbow_pitch_r': 0.08405714023137756,
-    #     'j22_elbow_yaw_r': 0.08405714023137756,
-    #     'j23_head_yaw': 0.08405714023137756,
-    # }
-
     action_scales = {
-        'j00_hip_pitch_l': 0.5857142857142857,
-        'j06_hip_pitch_r': 0.5857142857142857,
-        'j01_hip_roll_l': 0.5857142857142857,
-        'j07_hip_roll_r': 0.5857142857142857,
-        'j02_hip_yaw_l': 0.305,
-        'j08_hip_yaw_r': 0.305,
-        'j03_knee_pitch_l': 0.5857142857142857,
-        'j09_knee_pitch_r': 0.5857142857142857,
-        'j04_ankle_pitch_l': 0.7625,
-        'j10_ankle_pitch_r': 0.7625,
-        'j05_ankle_roll_l': 0.7625,
-        'j11_ankle_roll_r': 0.7625,
-        'j12_waist_yaw': 0.305,
-        'j13_shoulder_pitch_l': 0.098405714023137756,
-        'j14_shoulder_roll_l': 0.098405714023137756,
-        'j15_shoulder_yaw_l': 0.098405714023137756,
-        'j16_elbow_pitch_l': 0.098405714023137756,
-        'j17_elbow_yaw_l': 0.098405714023137756,
-        'j18_shoulder_pitch_r': 0.098405714023137756,
-        'j19_shoulder_roll_r': 0.098405714023137756,
-        'j20_shoulder_yaw_r': 0.098405714023137756,
-        'j21_elbow_pitch_r': 0.098405714023137756,
-        'j22_elbow_yaw_r': 0.098405714023137756,
-        'j23_head_yaw': 0.305,
+        'j00_hip_pitch_l': 0.22913229617061878,
+        'j01_hip_roll_l': 0.22913229617061878,
+        'j03_knee_pitch_l': 0.22913229617061878,
+        'j06_hip_pitch_r': 0.22913229617061878,
+        'j07_hip_roll_r': 0.22913229617061878,
+        'j09_knee_pitch_r': 0.22913229617061878,
+        'j02_hip_yaw_l': 0.08405714023137756,
+        'j08_hip_yaw_r': 0.08405714023137756,
+        'j04_ankle_pitch_l': 0.08405714023137756,
+        'j05_ankle_roll_l': 0.08405714023137756,
+        'j10_ankle_pitch_r': 0.08405714023137756,
+        'j11_ankle_roll_r': 0.08405714023137756,
+        'j12_waist_yaw': 0.08405714023137756,
+        'j13_shoulder_pitch_l': 0.08405714023137756,
+        'j14_shoulder_roll_l': 0.08405714023137756,
+        'j15_shoulder_yaw_l': 0.08405714023137756,
+        'j16_elbow_pitch_l': 0.08405714023137756,
+        'j17_elbow_yaw_l': 0.08405714023137756,
+        'j18_shoulder_pitch_r': 0.08405714023137756,
+        'j19_shoulder_roll_r': 0.08405714023137756,
+        'j20_shoulder_yaw_r': 0.08405714023137756,
+        'j21_elbow_pitch_r': 0.08405714023137756,
+        'j22_elbow_yaw_r': 0.08405714023137756,
+        'j23_head_yaw': 0.08405714023137756,
     }
+
+    # action_scales = {
+    #     'j00_hip_pitch_l': 0.5857142857142857,
+    #     'j06_hip_pitch_r': 0.5857142857142857,
+    #     'j01_hip_roll_l': 0.5857142857142857,
+    #     'j07_hip_roll_r': 0.5857142857142857,
+    #     'j02_hip_yaw_l': 0.305,
+    #     'j08_hip_yaw_r': 0.305,
+    #     'j03_knee_pitch_l': 0.5857142857142857,
+    #     'j09_knee_pitch_r': 0.5857142857142857,
+    #     'j04_ankle_pitch_l': 0.7625,
+    #     'j10_ankle_pitch_r': 0.7625,
+    #     'j05_ankle_roll_l': 0.7625,
+    #     'j11_ankle_roll_r': 0.7625,
+    #     'j12_waist_yaw': 0.305,
+    #     'j13_shoulder_pitch_l': 0.098405714023137756,
+    #     'j14_shoulder_roll_l': 0.098405714023137756,
+    #     'j15_shoulder_yaw_l': 0.098405714023137756,
+    #     'j16_elbow_pitch_l': 0.098405714023137756,
+    #     'j17_elbow_yaw_l': 0.098405714023137756,
+    #     'j18_shoulder_pitch_r': 0.098405714023137756,
+    #     'j19_shoulder_roll_r': 0.098405714023137756,
+    #     'j20_shoulder_yaw_r': 0.098405714023137756,
+    #     'j21_elbow_pitch_r': 0.098405714023137756,
+    #     'j22_elbow_yaw_r': 0.098405714023137756,
+    #     'j23_head_yaw': 0.305,
+    # }
     
     # Default joint positions (from training config) - in Isaac Lab order
     default_joint_pos = {
@@ -335,63 +335,6 @@ def quat_to_rot_matrix(quat_wxyz, out=None):
     return out
 
 
-def rot_matrix_to_euler_xyz(R):
-    """
-    Convert rotation matrix to ZYX Euler angles (roll, pitch, yaw).
-    
-    This matches the C++ and IsaacLab implementation:
-    - Roll (x-axis rotation)
-    - Pitch (y-axis rotation) 
-    - Yaw (z-axis rotation)
-    
-    Args:
-        R: 3x3 rotation matrix
-        
-    Returns:
-        numpy array [roll, pitch, yaw] in radians
-    """
-    # Roll (rotation about x-axis)
-    roll = np.arctan2(R[2, 1], R[2, 2])
-    
-    # Pitch (rotation about y-axis)
-    sin_pitch = -R[2, 0]
-    sin_pitch = np.clip(sin_pitch, -1.0, 1.0)  # Clamp for numerical stability
-    pitch = np.arcsin(sin_pitch)
-    
-    # Yaw (rotation about z-axis)
-    yaw = np.arctan2(R[1, 0], R[0, 0])
-    
-    return np.array([roll, pitch, yaw])
-
-
-def apply_coordinate_frame_correction(euler_xyz):
-    """
-    Apply coordinate frame correction for MuJoCo to IsaacLab conversion.
-    
-    IsaacLab uses X-forward coordinate convention (URDF/ROS standard)
-    MuJoCo uses Y-forward coordinate convention
-    We need to add π/2 to yaw to align the frames.
-    
-    Args:
-        euler_xyz: numpy array [roll, pitch, yaw] in radians
-        
-    Returns:
-        Corrected euler angles [roll, pitch, yaw_corrected]
-    """
-    euler_corrected = euler_xyz.copy()
-    
-    # Add π/2 to yaw to convert from MuJoCo (Y-forward) to IsaacLab (X-forward)
-    euler_corrected[2] += np.pi / 2.0
-    
-    # Normalize yaw to [-π, π] range
-    while euler_corrected[2] > np.pi:
-        euler_corrected[2] -= 2.0 * np.pi
-    while euler_corrected[2] < -np.pi:
-        euler_corrected[2] += 2.0 * np.pi
-    
-    return euler_corrected
-
-
 def quat_mul(q1, q2):
     """Multiply two quaternions (wxyz format)."""
     w1, x1, y1, z1 = q1
@@ -471,12 +414,6 @@ def get_robot_state(data, model, cfg, state_cache=None, torso_body_id=None, rot_
             anchor_pos = base_pos
             anchor_quat_wxyz = base_quat_wxyz
         
-        # Compute Euler angles from base quaternion
-        base_rot_matrix = quat_to_rot_matrix(base_quat_wxyz)
-        euler_xyz = rot_matrix_to_euler_xyz(base_rot_matrix)
-        # Apply coordinate frame correction (MuJoCo Y-forward -> IsaacLab X-forward)
-        euler_xyz_corrected = apply_coordinate_frame_correction(euler_xyz)
-        
         return {
             'base_pos': base_pos,
             'base_quat': base_quat_wxyz,
@@ -486,7 +423,6 @@ def get_robot_state(data, model, cfg, state_cache=None, torso_body_id=None, rot_
             'joint_vel': joint_vel_isaac,  # In Isaac Lab order
             'anchor_pos': anchor_pos,  # Torso body position
             'anchor_quat': anchor_quat_wxyz,  # Torso body orientation
-            'euler_xyz': euler_xyz_corrected,  # [roll, pitch, yaw] with coordinate correction
         }
     
     if isaac_to_mujoco is None:
@@ -531,13 +467,6 @@ def get_robot_state(data, model, cfg, state_cache=None, torso_body_id=None, rot_
         np.copyto(state_cache['anchor_pos'], base_pos)
         np.copyto(state_cache['anchor_quat'], base_quat_wxyz)
     
-    # Compute Euler angles from base quaternion
-    base_rot_matrix = quat_to_rot_matrix(base_quat_wxyz, out=rot_mat)
-    euler_xyz = rot_matrix_to_euler_xyz(base_rot_matrix)
-    # Apply coordinate frame correction (MuJoCo Y-forward -> IsaacLab X-forward)
-    euler_xyz_corrected = apply_coordinate_frame_correction(euler_xyz)
-    np.copyto(state_cache['euler_xyz'], euler_xyz_corrected)
-    
     return state_cache
 
 
@@ -546,16 +475,18 @@ def build_observation(robot_state, motion, time_step, last_action, cfg, obs_cach
     Build observation vector matching Isaac Lab training.
     
     Observation order:
-    1. euler_xyz (roll, pitch, yaw from base orientation) - 3 dims
-    2. base_ang_vel - 3 dims
-    3. joint_pos_rel (joint_pos - default_pos) - 24 dims
-    4. joint_vel - 24 dims
-    5. last_action - 24 dims
+    1. command (joint_pos + joint_vel from motion) - 48 dims
+    2. motion_anchor_pos_b (relative anchor position) - 3 dims  
+    3. motion_anchor_ori_b (relative anchor orientation as 2 cols of rotation matrix) - 6 dims
+    4. base_lin_vel - 3 dims
+    5. base_ang_vel - 3 dims
+    6. joint_pos_rel (joint_pos - default_pos) - 24 dims
+    7. joint_vel - 24 dims (assuming no scaling needed)
+    8. last_action - 24 dims
     
-    Total: 3 + 3 + 24 + 24 + 24 = 78 dims
-    
-    Note: The euler angles are computed from the base quaternion and include
-    coordinate frame correction to align MuJoCo (Y-forward) with IsaacLab (X-forward).
+    Total: 48 + 3 + 6 + 3 + 3 + 24 + 24 + 24 = 135 dims
+
+    For now we omit 1,2,3 to reduce to 78 dims, as policy was trained without them.
     """
     # Get motion frame
     t = time_step % motion.num_frames
@@ -598,21 +529,18 @@ def build_observation(robot_state, motion, time_step, last_action, cfg, obs_cach
     if obs_cache is None:
         obs = []
         
-        # 1. Euler angles (roll, pitch, yaw) - BEFORE angular velocity
-        obs.append(robot_state['euler_xyz'])
-        
-        # 2. base_ang_vel
+        # 5. base_ang_vel
         obs.append(robot_state['base_ang_vel'])
         
-        # 3. joint_pos_rel (relative to default) - in Isaac Lab order
+        # 6. joint_pos_rel (relative to default) - in Isaac Lab order
         default_pos = np.array([cfg.default_joint_pos[name] for name in cfg.isaac_joint_names])
         joint_pos_rel = robot_state['joint_pos'] - default_pos
         obs.append(joint_pos_rel)
         
-        # 4. joint_vel
+        # 7. joint_vel
         obs.append(robot_state['joint_vel'] * 1)
         
-        # 5. last_action
+        # 8. last_action
         obs.append(last_action)
         
         return np.concatenate(obs).astype(np.float32)
@@ -623,8 +551,6 @@ def build_observation(robot_state, motion, time_step, last_action, cfg, obs_cach
     np.subtract(robot_state['joint_pos'], default_pos, out=joint_pos_rel)
     
     idx = 0
-    obs_buf[idx:idx+3] = robot_state['euler_xyz']  # Euler angles (roll, pitch, yaw)
-    idx += 3
     obs_buf[idx:idx+3] = robot_state['base_ang_vel']
     idx += 3
     obs_buf[idx:idx+cfg.num_actions] = joint_pos_rel
@@ -881,7 +807,7 @@ def load_policy(policy_path=None, onnx_path=None, wandb_path=None):
                 def __init__(self):
                     super().__init__()
                     self.net = torch.nn.Sequential(
-                        torch.nn.Linear(78, 512),
+                        torch.nn.Linear(75, 512),
                         torch.nn.ELU(),
                         torch.nn.Linear(512, 256),
                         torch.nn.ELU(),
@@ -985,10 +911,9 @@ def run_sim2sim(policy_fn, motion, cfg, args):
         'joint_vel': np.zeros(cfg.num_actions),
         'anchor_pos': np.zeros(3),
         'anchor_quat': np.zeros(4),
-        'euler_xyz': np.zeros(3),  # [roll, pitch, yaw]
     }
     rot_mat = np.zeros((3, 3))
-    obs_dim = 3 + 3 + cfg.num_actions * 3  # euler(3) + ang_vel(3) + joint_pos(24) + joint_vel(24) + action(24)
+    obs_dim = 3 + cfg.num_actions * 3
     obs_cache = {
         'obs_buf': np.zeros(obs_dim, dtype=np.float32),
         'joint_pos_rel': np.zeros(cfg.num_actions),

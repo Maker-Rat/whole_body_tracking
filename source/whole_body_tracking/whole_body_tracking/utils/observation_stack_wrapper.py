@@ -13,11 +13,17 @@ class ObservationStackWrapper:
 
     def reset(self, obs):
         # obs: initial observation (np.ndarray or torch.Tensor)
-        self.stack = deque([obs.copy() for _ in range(self.num_stack)], maxlen=self.num_stack)
+        if hasattr(obs, 'clone'):
+            self.stack = deque([obs.clone() for _ in range(self.num_stack)], maxlen=self.num_stack)
+        else:
+            self.stack = deque([obs.copy() for _ in range(self.num_stack)], maxlen=self.num_stack)
         return self._get_stacked_obs()
 
     def step(self, obs):
-        self.stack.append(obs.copy())
+        if hasattr(obs, 'clone'):
+            self.stack.append(obs.clone())
+        else:
+            self.stack.append(obs.copy())
         return self._get_stacked_obs()
 
     def _get_stacked_obs(self):

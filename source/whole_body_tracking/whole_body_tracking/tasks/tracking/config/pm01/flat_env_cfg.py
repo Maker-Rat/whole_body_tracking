@@ -71,13 +71,13 @@ class PM01FlatEnvCfg(TrackingEnvCfg):
         )
 
         # Add observation stacking wrapper (10 frames)
-        self.wrappers = getattr(self, "wrappers", [])
-        self.wrappers.append(
-            ObservationStackWrapper(
-                num_stack=10,  # Number of stacked observations
-                concat_axis=-1  # Stack along the last axis (feature dimension)
-            )
-        )
+        # self.wrappers = getattr(self, "wrappers", [])
+        # self.wrappers.append(
+        #     ObservationStackWrapper(
+        #         num_stack=10,  # Number of stacked observations (set to 10 for stacking)
+        #         concat_axis=-1  # Stack along the last axis (feature dimension)
+        #     )
+        # )
 
 
 @configclass
