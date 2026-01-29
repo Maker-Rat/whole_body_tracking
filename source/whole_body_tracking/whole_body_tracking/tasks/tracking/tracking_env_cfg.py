@@ -282,6 +282,12 @@ class EventCfg:
         },
     )
 
+    reset_spawn_height = EventTerm(
+        func=mdp.reset_base_height,
+        mode="reset",
+        params={"height": 1.85},
+    )
+
 
 @configclass
 class RewardsCfg:

@@ -410,3 +410,19 @@ def randomize_imu_obs_lag(
     )
     
     env._imu_lag_timesteps[env_ids] = lag_timesteps.to(env._imu_lag_timesteps.dtype)
+
+
+def reset_base_height(
+    env: ManagerBasedEnv,
+    env_ids: torch.Tensor,
+    height: float = 1.85,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+):
+    """Reset robot base to specified height."""
+    asset: Articulation = env.scene[asset_cfg.name]
+    
+    root_state = asset.data.root_state_w[env_ids].clone()
+    root_state[:, 2] = height
+    root_state[:, 7:13] = 0.0  # Zero velocities
+    
+    asset.write_root_state_to_sim(root_state, env_ids=env_ids)
