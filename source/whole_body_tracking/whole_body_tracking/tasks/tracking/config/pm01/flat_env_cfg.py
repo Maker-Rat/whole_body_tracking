@@ -60,7 +60,7 @@ class PM01FlatEnvCfg(TrackingEnvCfg):
             func=mdp.bad_motion_body_pos_z_only,
             params={
                 "command_name": "motion",
-                "threshold": 0.25,
+                "threshold": 0.35,
                 "body_names": [
                     "link_ankle_roll_l",
                     "link_ankle_roll_r",

@@ -282,12 +282,6 @@ class EventCfg:
         },
     )
 
-    reset_spawn_height = EventTerm(
-        func=mdp.reset_base_height,
-        mode="reset",
-        params={"height": 1.85},
-    )
-
 
 @configclass
 class RewardsCfg:
@@ -360,17 +354,17 @@ class TerminationsCfg:
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
     anchor_pos = DoneTerm(
         func=mdp.bad_anchor_pos_z_only,
-        params={"command_name": "motion", "threshold": 0.25},
+        params={"command_name": "motion", "threshold": 0.35},
     )
     anchor_ori = DoneTerm(
         func=mdp.bad_anchor_ori,
-        params={"asset_cfg": SceneEntityCfg("robot"), "command_name": "motion", "threshold": 0.8},
+        params={"asset_cfg": SceneEntityCfg("robot"), "command_name": "motion", "threshold": 1.0},
     )
     ee_body_pos = DoneTerm(
         func=mdp.bad_motion_body_pos_z_only,
         params={
             "command_name": "motion",
-            "threshold": 0.25,
+            "threshold": 0.35,
             "body_names": [
                 "left_ankle_roll_link",
                 "right_ankle_roll_link",

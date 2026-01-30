@@ -14,7 +14,7 @@ STIFFNESS_ANKLE_PITCH = 20
 STIFFNESS_ANKLE_ROLL = 20
 STIFFNESS_WAIST_YAW = 50
 STIFFNESS_HEAD_YAW = 50
-STIFFNESS_ARM_ALL = 155
+STIFFNESS_ARM_ALL = 50
 
 DAMPING_HIP_PITCH = 7.0
 DAMPING_HIP_ROLL = 7.0
@@ -24,7 +24,7 @@ DAMPING_ANKLE_PITCH = 0.2
 DAMPING_ANKLE_ROLL = 0.2
 DAMPING_WAIST_YAW = 5.0
 DAMPING_HEAD_YAW = 5.0
-DAMPING_ARM_ALL = 9.8
+DAMPING_ARM_ALL = 5.0
 
 # STIFFNESS_HIP_PITCH = 179
 # STIFFNESS_HIP_ROLL = 179
@@ -71,7 +71,7 @@ PM01_CFG = ArticulationCfg(
         ),
     ),
     init_state=ArticulationCfg.InitialStateCfg(
-        pos=(0.0, 0.0, 0.85),
+        pos=(0.0, 0.0, 0.95),
         joint_pos={
             "j.*_hip_pitch_.*": -0.12,
             "j.*_knee_pitch_.*": 0.24,
