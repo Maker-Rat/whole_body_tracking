@@ -20,7 +20,7 @@ class PM01RoughEnvCfg(TrackingEnvCfg):
     def __post_init__(self):
         super().__post_init__()
 
-        # Override terrain to slightly rough procedurally generated terrain
+        # Override terrain to mostly flat with some rough patches
         self.scene.terrain = self.scene.terrain.replace(
             terrain_type="generator",
             terrain_generator=TerrainGeneratorCfg(
@@ -32,9 +32,13 @@ class PM01RoughEnvCfg(TrackingEnvCfg):
                 horizontal_scale=0.2,
                 vertical_scale=0.005,
                 sub_terrains={
-                    # Random noise for very slight unevenness
+                    # Flat terrain (70% of patches)
+                    "flat": terrain_gen.MeshPlaneTerrainCfg(
+                        proportion=0.5,
+                    ),
+                    # Rough patches (30% of patches)
                     "rough": terrain_gen.HfRandomUniformTerrainCfg(
-                        proportion=1.0,
+                        proportion=0.5,
                         noise_range=(0.01, 0.04),
                         noise_step=0.01,
                         border_width=0.2
