@@ -107,7 +107,7 @@ def feet_slip_penalty(
 
     # Contact mask: shape (num_envs, num_feet)
     # Uses sensor-side body_ids to index into the sensor's force history.
-    is_contact = torch.norm(contact_sensor.data.net_forces_w[:, sensor_cfg.body_ids], dim=-1) > 1.0
+    is_contact = torch.norm(contact_sensor.data.net_forces_w[:, sensor_cfg.body_ids], dim=-1) > 10.0
 
     # Foot XY velocities: shape (num_envs, num_feet, 2)
     # Uses articulation-side body_ids to index into the robot's body states.
