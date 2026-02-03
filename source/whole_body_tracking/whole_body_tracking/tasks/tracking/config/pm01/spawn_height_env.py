@@ -9,7 +9,7 @@ class SpawnHeightEnv(ManagerBasedRLEnv):
     
     def __init__(self, cfg, render_mode=None, **kwargs):
         super().__init__(cfg, render_mode, **kwargs)
-        self._spawn_height = 0.95  # Desired spawn height
+        self._spawn_height = 0.9  # Desired spawn height
         self._step_counter = 0
         self._enforce_height_next_step = False
         self._enforce_height_next_step_mask = None

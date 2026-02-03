@@ -5,7 +5,7 @@ class Actor(torch.nn.Module):
     def __init__(self):
         super().__init__()
         self.net = torch.nn.Sequential(
-            torch.nn.Linear(75, 512),
+            torch.nn.Linear(78, 512),
             torch.nn.ELU(),
             torch.nn.Linear(512, 256),
             torch.nn.ELU(),
@@ -17,7 +17,7 @@ class Actor(torch.nn.Module):
         return self.net(x)
 
 # Load the checkpoint
-ckpt = torch.load("model_22500.pt", map_location="cpu")
+ckpt = torch.load("model_19500.pt", map_location="cpu")
 state_dict = ckpt["model_state_dict"]
 # Map keys if needed (e.g., 'actor.0.weight' -> 'net.0.weight')
 actor_state = {k.replace("actor.", "net."): v for k, v in state_dict.items() if "actor" in k}
@@ -28,13 +28,13 @@ actor.load_state_dict(actor_state)
 actor.eval()
 
 # Dummy input for export
-dummy_input = torch.zeros(1, 75)
+dummy_input = torch.zeros(1, 78)
 
 # Export to ONNX
 torch.onnx.export(
     actor,
     dummy_input,
-    "new.onnx",
+    "newnew.onnx",
     input_names=["obs"],
     output_names=["actions"],
     opset_version=11,

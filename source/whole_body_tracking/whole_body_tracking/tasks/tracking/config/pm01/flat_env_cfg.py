@@ -55,6 +55,39 @@ class PM01FlatEnvCfg(TrackingEnvCfg):
             },
         )
 
+        # Override foot rewards for PM01 body names
+        self.rewards.feet_slip = RewTerm(
+            func=mdp.feet_slip_penalty,
+            weight=-0.1,
+            params={
+                "sensor_cfg": SceneEntityCfg(
+                    "contact_forces", body_names=["link_ankle_roll_l", "link_ankle_roll_r"]
+                ),
+                "asset_cfg": SceneEntityCfg(
+                    "robot", body_names=["link_ankle_roll_l", "link_ankle_roll_r"]
+                ),
+            },
+        )
+        self.rewards.feet_air_time = RewTerm(
+            func=mdp.feet_air_time,
+            weight=1.5,
+            params={
+                "sensor_cfg": SceneEntityCfg(
+                    "contact_forces", body_names=["link_ankle_roll_l", "link_ankle_roll_r"]
+                ),
+            },
+        )
+        self.rewards.feet_contact_forces = RewTerm(
+            func=mdp.feet_contact_forces_penalty,
+            weight=-0.02,
+            params={
+                "sensor_cfg": SceneEntityCfg(
+                    "contact_forces", body_names=["link_ankle_roll_l", "link_ankle_roll_r"]
+                ),
+                "max_contact_force": 500.0,
+            },
+        )
+
         # Override termination: ee_body_pos for PM01 end-effector body names
         self.terminations.ee_body_pos = DoneTerm(
             func=mdp.bad_motion_body_pos_z_only,
@@ -69,15 +102,6 @@ class PM01FlatEnvCfg(TrackingEnvCfg):
                 ],
             },
         )
-
-        # Add observation stacking wrapper (10 frames)
-        # self.wrappers = getattr(self, "wrappers", [])
-        # self.wrappers.append(
-        #     ObservationStackWrapper(
-        #         num_stack=10,  # Number of stacked observations (set to 10 for stacking)
-        #         concat_axis=-1  # Stack along the last axis (feature dimension)
-        #     )
-        # )
 
 
 @configclass

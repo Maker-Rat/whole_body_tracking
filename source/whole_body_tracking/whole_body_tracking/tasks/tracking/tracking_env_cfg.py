@@ -31,8 +31,8 @@ VELOCITY_RANGE = {
     "x": (-0.5, 0.5),
     "y": (-0.5, 0.5),
     "z": (-0.2, 0.2),
-    "roll": (-0.52, 0.52),
-    "pitch": (-0.52, 0.52),
+    "roll": (-0.6, 0.6),
+    "pitch": (-0.6, 0.6),
     "yaw": (-0.78, 0.78),
 }
 
@@ -337,13 +337,40 @@ class RewardsCfg:
         },
     )
 
-    # feet_slip = RewTerm(
-    #     func=mdp.feet_slip_penalty,
-    #     weight=-0.05,
-    #     params={
-    #         "sensor_cfg": SceneEntityCfg("contact_forces", body_names=["link_ankle_roll_l", "link_ankle_roll_r"]),
-    #     },
-    # )
+    # Foot-specific rewards / penalties
+    feet_slip = RewTerm(
+        func=mdp.feet_slip_penalty,
+        weight=-0.1,
+        params={
+            "sensor_cfg": SceneEntityCfg(
+                "contact_forces", body_names=["left_ankle_roll_link", "right_ankle_roll_link"]
+            ),
+            # Articulation body_ids are a separate index space from the sensor's;
+            # we need a second SceneEntityCfg pointing at the robot with the same names.
+            "asset_cfg": SceneEntityCfg(
+                "robot", body_names=["left_ankle_roll_link", "right_ankle_roll_link"]
+            ),
+        },
+    )
+    feet_air_time = RewTerm(
+        func=mdp.feet_air_time,
+        weight=1.5,
+        params={
+            "sensor_cfg": SceneEntityCfg(
+                "contact_forces", body_names=["left_ankle_roll_link", "right_ankle_roll_link"]
+            ),
+        },
+    )
+    feet_contact_forces = RewTerm(
+        func=mdp.feet_contact_forces_penalty,
+        weight=-0.02,
+        params={
+            "sensor_cfg": SceneEntityCfg(
+                "contact_forces", body_names=["left_ankle_roll_link", "right_ankle_roll_link"]
+            ),
+            "max_contact_force": 500.0,
+        },
+    )
 
 
 
@@ -354,17 +381,17 @@ class TerminationsCfg:
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
     anchor_pos = DoneTerm(
         func=mdp.bad_anchor_pos_z_only,
-        params={"command_name": "motion", "threshold": 0.35},
+        params={"command_name": "motion", "threshold": 0.25},
     )
     anchor_ori = DoneTerm(
         func=mdp.bad_anchor_ori,
-        params={"asset_cfg": SceneEntityCfg("robot"), "command_name": "motion", "threshold": 1.0},
+        params={"asset_cfg": SceneEntityCfg("robot"), "command_name": "motion", "threshold": 0.8},
     )
     ee_body_pos = DoneTerm(
         func=mdp.bad_motion_body_pos_z_only,
         params={
             "command_name": "motion",
-            "threshold": 0.35,
+            "threshold": 0.25,
             "body_names": [
                 "left_ankle_roll_link",
                 "right_ankle_roll_link",
