@@ -375,11 +375,12 @@ class RewardsCfg:
     impact_reduction=RewTerm(
         func=mdp.impact_reduction,
         params={
-            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=["link_ankle_roll_l", "link_ankle_roll_r"]),
-            "asset_cfg": SceneEntityCfg("robot", body_names=["link_ankle_roll_l", "link_ankle_roll_r"]),
+            "sensor_name": "contact_forces",
+            "asset_name": "robot",
+            "body_names": ["link_ankle_roll_l", "link_ankle_roll_r"],
             "delta_v_max_squared": 2.0,
         },
-        weight=2.5e-3,  # Adjust weight as needed
+        weight=-2.5e-3,
     ),
 
 

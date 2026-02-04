@@ -171,8 +171,9 @@ def feet_contact_forces_penalty(
 
 def impact_reduction(
     env: ManagerBasedRLEnv,
-    sensor_cfg: SceneEntityCfg,
-    asset_cfg: SceneEntityCfg,
+    sensor_name: str = "contact_forces",
+    asset_name: str = "robot",
+    body_names: list[str] | None = None,
     delta_v_max_squared: float = 2.0,
 ) -> torch.Tensor:
     """Penalize changes in vertical (z) foot velocity to reduce impact noise.
@@ -183,20 +184,27 @@ def impact_reduction(
 
     Args:
         env: The RL environment.
-        sensor_cfg: Configuration for the contact sensor with foot body names.
-        asset_cfg: Configuration for the robot articulation with foot body names.
+        sensor_name: Name of the contact sensor asset.
+        asset_name: Name of the robot articulation asset.
+        body_names: Names of the feet bodies to track. If None, uses all bodies.
         delta_v_max_squared: Maximum squared velocity change threshold (m²/s²).
     """
-    asset = env.scene[asset_cfg.name]
+    asset = env.scene[asset_name]
+
+    # Get body indices
+    if body_names is None:
+        body_ids = slice(None)
+    else:
+        body_ids = [i for i, name in enumerate(asset.data.body_names) if name in body_names]
 
     # Get current foot velocities: (num_envs, num_feet, 3)
-    foot_vel_w = asset.data.body_lin_vel_w[:, asset_cfg.body_ids]
+    foot_vel_w = asset.data.body_lin_vel_w[:, body_ids]
 
     # Initialize tracking on first step
     if not hasattr(env, "_last_foot_vel_z"):
         env._last_foot_vel_z = torch.zeros(
             env.num_envs,
-            len(asset_cfg.body_ids),
+            foot_vel_w.shape[1],
             device=env.device,
             dtype=foot_vel_w.dtype,
         )
