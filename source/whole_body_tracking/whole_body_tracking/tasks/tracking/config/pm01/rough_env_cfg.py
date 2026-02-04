@@ -24,7 +24,7 @@ class PM01RoughEnvCfg(TrackingEnvCfg):
         self.scene.terrain = self.scene.terrain.replace(
             terrain_type="generator",
             terrain_generator=TerrainGeneratorCfg(
-                seed=0,
+                seed=None,  # Randomize terrain layout each episode
                 size=(64.0, 64.0),
                 border_width=5.0,
                 num_rows=2,

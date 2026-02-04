@@ -107,7 +107,7 @@ def feet_slip_penalty(
 
     # Contact mask: shape (num_envs, num_feet)
     # Uses sensor-side body_ids to index into the sensor's force history.
-    is_contact = torch.norm(contact_sensor.data.net_forces_w[:, sensor_cfg.body_ids], dim=-1) > 10.0
+    is_contact = torch.norm(contact_sensor.data.net_forces_w[:, sensor_cfg.body_ids], dim=-1) > 1.0
 
     # Foot XY velocities: shape (num_envs, num_feet, 2)
     # Uses articulation-side body_ids to index into the robot's body states.
@@ -167,3 +167,53 @@ def feet_contact_forces_penalty(
     # Excess above threshold, clipped to a safe upper bound
     penalty = torch.sum((force_magnitudes - max_contact_force).clip(0, 350), dim=-1)  # (num_envs,)
     return penalty
+
+
+def impact_reduction(
+    env: ManagerBasedRLEnv,
+    sensor_cfg: SceneEntityCfg,
+    asset_cfg: SceneEntityCfg,
+    delta_v_max_squared: float = 2.0,
+) -> torch.Tensor:
+    """Penalize changes in vertical (z) foot velocity to reduce impact noise.
+
+    Based on Disney's Olaf paper. Formula: -Σi∈{feet} min(Δv²i,z , Δv²max)
+    The saturation prevents large velocity changes during contact resolution
+    from destabilizing critic learning.
+
+    Args:
+        env: The RL environment.
+        sensor_cfg: Configuration for the contact sensor with foot body names.
+        asset_cfg: Configuration for the robot articulation with foot body names.
+        delta_v_max_squared: Maximum squared velocity change threshold (m²/s²).
+    """
+    asset = env.scene[asset_cfg.name]
+
+    # Get current foot velocities: (num_envs, num_feet, 3)
+    foot_vel_w = asset.data.body_lin_vel_w[:, asset_cfg.body_ids]
+
+    # Initialize tracking on first step
+    if not hasattr(env, "_last_foot_vel_z"):
+        env._last_foot_vel_z = torch.zeros(
+            env.num_envs,
+            len(asset_cfg.body_ids),
+            device=env.device,
+            dtype=foot_vel_w.dtype,
+        )
+
+    # Compute change in vertical velocity: (num_envs, num_feet)
+    delta_v_z = foot_vel_w[:, :, 2] - env._last_foot_vel_z
+    delta_v_z_squared = delta_v_z**2
+
+    # Apply saturation and sum over feet
+    saturated_delta = torch.minimum(
+        delta_v_z_squared,
+        torch.tensor(delta_v_max_squared, device=env.device, dtype=delta_v_z_squared.dtype),
+    )
+    total_impact = torch.sum(saturated_delta, dim=1)  # (num_envs,)
+
+    # Update tracking for next step
+    env._last_foot_vel_z = foot_vel_w[:, :, 2].clone()
+
+    # Return penalty (positive value to be negated by negative weight, or positive weight for negative contribution)
+    return total_impact
