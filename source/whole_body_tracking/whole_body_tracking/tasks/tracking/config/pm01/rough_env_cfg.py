@@ -34,11 +34,11 @@ class PM01RoughEnvCfg(TrackingEnvCfg):
                 sub_terrains={
                     # Flat terrain (70% of patches)
                     "flat": terrain_gen.MeshPlaneTerrainCfg(
-                        proportion=0.5,
+                        proportion=0.85,
                     ),
                     # Rough patches (30% of patches)
                     "rough": terrain_gen.HfRandomUniformTerrainCfg(
-                        proportion=0.5,
+                        proportion=0.15,
                         noise_range=(0.01, 0.04),
                         noise_step=0.01,
                         border_width=0.2

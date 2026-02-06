@@ -340,7 +340,7 @@ class RewardsCfg:
     # Foot-specific rewards / penalties
     feet_slip = RewTerm(
         func=mdp.feet_slip_penalty,
-        weight=-0.05,
+        weight=-0.15,
         params={
             "sensor_cfg": SceneEntityCfg(
                 "contact_forces", body_names=["left_ankle_roll_link", "right_ankle_roll_link"]
@@ -363,7 +363,7 @@ class RewardsCfg:
     )
     feet_contact_forces = RewTerm(
         func=mdp.feet_contact_forces_penalty,
-        weight=-0.01,
+        weight=-0.005,
         params={
             "sensor_cfg": SceneEntityCfg(
                 "contact_forces", body_names=["left_ankle_roll_link", "right_ankle_roll_link"]
@@ -372,7 +372,7 @@ class RewardsCfg:
         },
     )
 
-    impact_reduction=RewTerm(
+    impact_reduction = RewTerm(
         func=mdp.impact_reduction,
         params={
             "sensor_name": "contact_forces",
@@ -381,7 +381,7 @@ class RewardsCfg:
             "delta_v_max_squared": 2.0,
         },
         weight=-2.5e-3,
-    ),
+    )
 
 
 
