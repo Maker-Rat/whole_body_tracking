@@ -125,6 +125,7 @@ PM01_CFG = ArticulationCfg(
             velocity_limit_sim=35.2,
             stiffness=STIFFNESS_ANKLE_PITCH,
             damping=DAMPING_ANKLE_PITCH,
+            armature=0.0067,
         ),
         # Ankle roll
         "ankle_roll": ImplicitActuatorCfg(
@@ -133,6 +134,7 @@ PM01_CFG = ArticulationCfg(
             velocity_limit_sim=35.2,
             stiffness=STIFFNESS_ANKLE_ROLL,
             damping=DAMPING_ANKLE_ROLL,
+            armature=0.0067,
         ),
         # Waist
         "waist": ImplicitActuatorCfg(
@@ -164,16 +166,9 @@ PM01_CFG = ArticulationCfg(
     },
 )
 
-# Compute action scale for each actuator group (0.25 * effort / stiffness)
+# Use constant action scale of 0.5 for all joints
 PM01_ACTION_SCALE = {}
 for group in PM01_CFG.actuators.values():
-    e = group.effort_limit_sim
-    s = group.stiffness
     names = group.joint_names_expr
-    if not isinstance(e, dict):
-        e = {n: e for n in names}
-    if not isinstance(s, dict):
-        s = {n: s for n in names}
     for n in names:
-        if n in e and n in s and s[n]:
-            PM01_ACTION_SCALE[n] = 0.25 * e[n] / s[n]
+        PM01_ACTION_SCALE[n] = 0.5

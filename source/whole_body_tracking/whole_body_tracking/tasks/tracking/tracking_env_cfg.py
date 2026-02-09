@@ -124,16 +124,33 @@ class ObservationsCfg:
         # )
         # base_lin_vel = ObsTerm(func=mdp.base_lin_vel, noise=Unoise(n_min=-0.5, n_max=0.5))
         robot_anchor_euler = ObsTerm(
-            func=mdp.robot_anchor_euler_xyz_from_matrix, params={"command_name": "motion"}, noise=Unoise(n_min=-0.05, n_max=0.05)
+            func=mdp.robot_anchor_euler_xyz_from_matrix, 
+            params={"command_name": "motion"}, 
+            noise=Unoise(n_min=-0.05, n_max=0.05),
+            history_length=3,
         )
-        base_ang_vel = ObsTerm(func=mdp.base_ang_vel, noise=Unoise(n_min=-0.2, n_max=0.2))
-        joint_pos = ObsTerm(func=mdp.joint_pos_rel, noise=Unoise(n_min=-0.01, n_max=0.01))
-        joint_vel = ObsTerm(func=mdp.joint_vel_rel, noise=Unoise(n_min=-0.5, n_max=0.5), scale=0.05)
+        base_ang_vel = ObsTerm(
+            func=mdp.base_ang_vel, 
+            noise=Unoise(n_min=-0.2, n_max=0.2),
+            history_length=3,
+        )
+        joint_pos = ObsTerm(
+            func=mdp.joint_pos_rel, 
+            noise=Unoise(n_min=-0.01, n_max=0.01),
+            history_length=3,
+        )
+        joint_vel = ObsTerm(
+            func=mdp.joint_vel_rel, 
+            noise=Unoise(n_min=-0.5, n_max=0.5), 
+            scale=0.05,
+            history_length=3,
+        )
         actions = ObsTerm(func=mdp.last_action)
 
         def __post_init__(self):
             self.enable_corruption = True
             self.concatenate_terms = True
+            self.flatten_history_dim = True
 
     @configclass
     class PrivilegedCfg(ObsGroup):
@@ -243,24 +260,12 @@ class EventCfg:
         },
     )
 
-    # Torque randomization (effort limit)
-    # randomize_effort_limit = EventTerm(
-    #     func=mdp.randomize_actuator_effort_limit,
-    #     mode="reset",
-    #     params={
-    #         "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
-    #         "effort_distribution_params": (0.8, 1.2),
-    #         "operation": "scale",
-    #         "distribution": "uniform",
-    #     },
-    # )
-
     # Action lag randomization
     randomize_action_lag = EventTerm(
         func=mdp.randomize_action_lag,
         mode="reset",
         params={
-            "action_lag_range": (0, 2),  
+            "action_lag_range": (0, 10),  
         },
     )
 
@@ -269,7 +274,7 @@ class EventCfg:
         func=mdp.randomize_motor_obs_lag,
         mode="reset",
         params={
-            "motor_lag_range": (0, 2),  
+            "motor_lag_range": (0, 10),  
         },
     )
 
@@ -278,7 +283,7 @@ class EventCfg:
         func=mdp.randomize_imu_obs_lag,
         mode="reset",
         params={
-            "imu_lag_range": (0, 2),  
+            "imu_lag_range": (0, 10),  
         },
     )
 
@@ -444,10 +449,10 @@ class TrackingEnvCfg(ManagerBasedRLEnvCfg):
     def __post_init__(self):
         """Post initialization."""
         # general settings
-        self.decimation = 2
+        self.decimation = 10
         self.episode_length_s = 10.0
         # simulation settings
-        self.sim.dt = 0.005
+        self.sim.dt = 0.001
         self.sim.render_interval = self.decimation
         self.sim.physics_material = self.scene.terrain.physics_material
         self.sim.physx.gpu_max_rigid_patch_count = 10 * 2**15
