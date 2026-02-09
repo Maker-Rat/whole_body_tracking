@@ -260,6 +260,43 @@ class EventCfg:
         },
     )
 
+        # FIX 2: Joint friction randomization with ankle-specific floor
+    # Randomize ankle joint friction with a minimum floor (matches EngineAI)
+    randomize_ankle_joint_friction = EventTerm(
+        func=mdp.randomize_joint_parameters,
+        mode="startup",
+        params={
+            "asset_cfg": SceneEntityCfg("robot", joint_names=[".*ankle.*"]),
+            "friction_distribution_params": (0.5, 1.3),  # Ankle-specific: never below 0.5x
+            "operation": "scale",
+            "distribution": "uniform",
+        },
+    )
+
+    # Randomize other joints' friction normally
+    randomize_other_joint_friction = EventTerm(
+        func=mdp.randomize_joint_parameters,
+        mode="startup",
+        params={
+            "asset_cfg": SceneEntityCfg("robot", joint_names=["^(?!.*ankle).*"]),
+            "friction_distribution_params": (0.01, 1.15),  # Other joints can go lower
+            "operation": "scale",
+            "distribution": "uniform",
+        },
+    )
+
+    # FIX 3: Joint armature randomization (matches EngineAI)
+    randomize_joint_armature = EventTerm(
+        func=mdp.randomize_joint_parameters,
+        mode="startup",
+        params={
+            "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
+            "armature_distribution_params": (0.27, 2.0),  # Same range as EngineAI
+            "operation": "scale",
+            "distribution": "uniform",
+        },
+    )
+
     # Action lag randomization
     randomize_action_lag = EventTerm(
         func=mdp.randomize_action_lag,
@@ -345,7 +382,7 @@ class RewardsCfg:
     # Foot-specific rewards / penalties
     feet_slip = RewTerm(
         func=mdp.feet_slip_penalty,
-        weight=-0.15,
+        weight=-0.1,
         params={
             "sensor_cfg": SceneEntityCfg(
                 "contact_forces", body_names=["left_ankle_roll_link", "right_ankle_roll_link"]

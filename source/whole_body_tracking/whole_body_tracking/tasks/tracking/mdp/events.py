@@ -159,6 +159,84 @@ def _randomize_prop_by_op(
     return data
 
 
+def randomize_joint_parameters(
+    env: ManagerBasedEnv,
+    env_ids: torch.Tensor | None,
+    asset_cfg: SceneEntityCfg,
+    friction_distribution_params: tuple[float, float] | None = None,
+    armature_distribution_params: tuple[float, float] | None = None,
+    operation: Literal["add", "scale", "abs"] = "scale",
+    distribution: Literal["uniform", "log_uniform", "gaussian"] = "uniform",
+):
+    """Randomize joint friction and armature parameters.
+    
+    This function allows separate randomization of joint friction and armature (rotor inertia).
+    Either or both parameters can be randomized by providing the corresponding distribution params.
+    
+    Args:
+        env: The environment.
+        env_ids: The environment IDs to randomize. If None, all environments are randomized.
+        asset_cfg: The asset configuration specifying which joints to randomize.
+        friction_distribution_params: Distribution parameters for joint friction randomization.
+        armature_distribution_params: Distribution parameters for joint armature randomization.
+        operation: The operation to perform. Options: 'add', 'scale', 'abs'.
+        distribution: The distribution to sample from. Options: 'uniform', 'log_uniform', 'gaussian'.
+    """
+    # extract the used quantities (to enable type-hinting)
+    asset: Articulation = env.scene[asset_cfg.name]
+    
+    # resolve environment ids (always use CPU for PhysX API)
+    if env_ids is None:
+        env_ids = torch.arange(env.scene.num_envs, device="cpu")
+    else:
+        env_ids = env_ids.cpu()
+    
+    # resolve joint indices
+    if asset_cfg.joint_ids == slice(None):
+        joint_ids = slice(None)
+    else:
+        joint_ids = torch.tensor(asset_cfg.joint_ids, dtype=torch.int, device="cpu")
+    
+    # Get PhysX view to access joint properties
+    physx_view = asset.root_physx_view
+    
+    # Randomize joint friction if params provided
+    if friction_distribution_params is not None:
+        # Get current joint friction (on CPU for PhysX)
+        joint_friction = physx_view.get_dof_friction_coefficients().clone()
+        
+        # Randomize
+        joint_friction = _randomize_prop_by_op(
+            joint_friction,
+            friction_distribution_params,
+            env_ids,
+            joint_ids,
+            operation=operation,
+            distribution=distribution,
+        )
+        
+        # Set back
+        physx_view.set_dof_friction_coefficients(joint_friction, env_ids)
+    
+    # Randomize joint armature if params provided
+    if armature_distribution_params is not None:
+        # Get current joint armature (on CPU for PhysX)
+        joint_armature = physx_view.get_dof_armatures().clone()
+        
+        # Randomize
+        joint_armature = _randomize_prop_by_op(
+            joint_armature,
+            armature_distribution_params,
+            env_ids,
+            joint_ids,
+            operation=operation,
+            distribution=distribution,
+        )
+        
+        # Set back
+        physx_view.set_dof_armatures(joint_armature, env_ids)
+
+
 def reset_root_state_uniform(
     env: ManagerBasedEnv,
     env_ids: torch.Tensor,
@@ -193,15 +271,15 @@ def reset_root_state_uniform(
 
     # Reset pit environments to default state (no random perturbations)
     if len(pit_env_ids) > 0:
+        # get default root state
         root_states = asset.data.default_root_state[pit_env_ids].clone()
-        positions = root_states[:, 0:3] + env.scene.env_origins[pit_env_ids]
-        orientations = root_states[:, 3:7]
-        velocities = torch.zeros_like(root_states[:, 7:13])
-        asset.write_root_pose_to_sim(torch.cat([positions, orientations], dim=-1), env_ids=pit_env_ids)
-        asset.write_root_velocity_to_sim(velocities, env_ids=pit_env_ids)
+        # set into the physics simulation
+        asset.write_root_pose_to_sim(root_states[:, :7], env_ids=pit_env_ids)
+        asset.write_root_velocity_to_sim(root_states[:, 7:], env_ids=pit_env_ids)
 
     # Reset non-pit environments with random perturbations
     if len(non_pit_env_ids) > 0:
+        # get default root state
         root_states = asset.data.default_root_state[non_pit_env_ids].clone()
 
         # poses
@@ -212,8 +290,8 @@ def reset_root_state_uniform(
         )
 
         positions = root_states[:, 0:3] + env.scene.env_origins[non_pit_env_ids] + rand_samples[:, 0:3]
-        orientations_delta = math_utils.quat_from_euler_xyz(rand_samples[:, 3], rand_samples[:, 4], rand_samples[:, 5])
-        orientations = math_utils.quat_mul(root_states[:, 3:7], orientations_delta)
+        orientations = math_utils.quat_from_euler_xyz(rand_samples[:, 3], rand_samples[:, 4], rand_samples[:, 5])
+
         # velocities
         range_list = [velocity_range.get(key, (0.0, 0.0)) for key in ["x", "y", "z", "roll", "pitch", "yaw"]]
         ranges = torch.tensor(range_list, device=asset.device)
