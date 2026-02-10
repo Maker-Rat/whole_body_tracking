@@ -234,6 +234,19 @@ class EventCfg:
         },
     )
 
+    # CRITICAL: Set hip/knee/ankle joint friction to 0 as baseline (matches reference exactly)
+    # This MUST come before any friction randomization events
+    reset_joint_friction = EventTerm(
+        func=mdp.randomize_joint_parameters,
+        mode="startup",
+        params={
+            "asset_cfg": SceneEntityCfg("robot", joint_names=[".*hip.*", ".*knee.*", ".*ankle.*"]),
+            "friction_distribution_params": (0.0, 0.0),  # Set hip/knee/ankle to 0 friction (matches reference)
+            "operation": "abs",
+            "distribution": "uniform",
+        },
+    )
+
     # interval
     push_robot = EventTerm(
         func=mdp.push_by_setting_velocity,
@@ -306,7 +319,7 @@ class EventCfg:
         func=mdp.randomize_action_lag,
         mode="reset",
         params={
-            "action_lag_range": (0, 2),  
+            "action_lag_range": (0, 10),  
         },
     )
 
@@ -315,7 +328,7 @@ class EventCfg:
         func=mdp.randomize_motor_obs_lag,
         mode="reset",
         params={
-            "motor_lag_range": (0, 2),  
+            "motor_lag_range": (0, 10),  
         },
     )
 
@@ -324,7 +337,7 @@ class EventCfg:
         func=mdp.randomize_imu_obs_lag,
         mode="reset",
         params={
-            "imu_lag_range": (0, 2),  
+            "imu_lag_range": (0, 10),  
         },
     )
 
@@ -364,6 +377,7 @@ class RewardsCfg:
         params={"command_name": "motion", "std": 3.14},
     )
     action_rate_l2 = RewTerm(func=mdp.action_rate_l2, weight=-1e-1)
+    action_smoothness_l2 = RewTerm(func=mdp.action_smoothness_l2, weight=-0.003)
     joint_limit = RewTerm(
         func=mdp.joint_pos_limits,
         weight=-10.0,
@@ -490,10 +504,10 @@ class TrackingEnvCfg(ManagerBasedRLEnvCfg):
     def __post_init__(self):
         """Post initialization."""
         # general settings
-        self.decimation = 2
+        self.decimation = 10
         self.episode_length_s = 10.0
         # simulation settings
-        self.sim.dt = 0.005
+        self.sim.dt = 0.001
         self.sim.render_interval = self.decimation
         self.sim.physics_material = self.scene.terrain.physics_material
         self.sim.physx.gpu_max_rigid_patch_count = 10 * 2**15

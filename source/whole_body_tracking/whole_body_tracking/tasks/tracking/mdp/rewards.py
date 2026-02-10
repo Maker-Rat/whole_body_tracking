@@ -225,3 +225,35 @@ def impact_reduction(
 
     # Return penalty (positive value to be negated by negative weight, or positive weight for negative contribution)
     return total_impact
+
+
+def action_rate_l2(env: ManagerBasedRLEnv) -> torch.Tensor:
+    """Penalize changes in actions (action velocity).
+    
+    Encourages smooth transitions between consecutive actions.
+    """
+    return torch.sum(torch.square(env.action_manager.action - env.action_manager.prev_action), dim=-1)
+
+
+def action_smoothness_l2(env: ManagerBasedRLEnv) -> torch.Tensor:
+    """Penalize action acceleration (second derivative of actions).
+    
+    Encourages smooth, gradual changes rather than sharp peaks.
+    This is the key term that produces smooth plateaus in policy outputs.
+    """
+    if not hasattr(env, "_prev_prev_action"):
+        # Initialize on first call
+        env._prev_prev_action = env.action_manager.action.clone()
+    
+    # Current - Previous (first derivative)
+    current_vel = env.action_manager.action - env.action_manager.prev_action
+    # Previous - Before that (first derivative from previous step)
+    prev_vel = env.action_manager.prev_action - env._prev_prev_action
+    # Acceleration = change in velocity
+    accel = current_vel - prev_vel
+    
+    # Update tracking for next step
+    env._prev_prev_action = env.action_manager.prev_action.clone()
+    
+    # Return sum of squared accelerations
+    return torch.sum(torch.square(accel), dim=-1)
