@@ -113,16 +113,6 @@ class ObservationsCfg:
     @configclass
     class PolicyCfg(ObsGroup):
         """Observations for policy group."""
-
-        # observation terms (order preserved)
-        # command = ObsTerm(func=mdp.generated_commands, params={"command_name": "motion"})
-        # motion_anchor_pos_b = ObsTerm(
-        #     func=mdp.motion_anchor_pos_b, params={"command_name": "motion"}, noise=Unoise(n_min=-0.25, n_max=0.25)
-        # )
-        # motion_anchor_ori_b = ObsTerm(
-        #     func=mdp.motion_anchor_ori_b, params={"command_name": "motion"}, noise=Unoise(n_min=-0.05, n_max=0.05)
-        # )
-        # base_lin_vel = ObsTerm(func=mdp.base_lin_vel, noise=Unoise(n_min=-0.5, n_max=0.5))
         robot_anchor_euler = ObsTerm(
             func=mdp.robot_anchor_euler_xyz_from_matrix, 
             params={"command_name": "motion"}, 
@@ -319,7 +309,7 @@ class EventCfg:
         func=mdp.randomize_action_lag,
         mode="reset",
         params={
-            "action_lag_range": (0, 10),  
+            "action_lag_range": (1, 6),
         },
     )
 
@@ -328,7 +318,7 @@ class EventCfg:
         func=mdp.randomize_motor_obs_lag,
         mode="reset",
         params={
-            "motor_lag_range": (0, 10),  
+            "motor_lag_range": (1, 3),  
         },
     )
 
@@ -337,7 +327,7 @@ class EventCfg:
         func=mdp.randomize_imu_obs_lag,
         mode="reset",
         params={
-            "imu_lag_range": (0, 10),  
+            "imu_lag_range": (1, 2),  
         },
     )
 
@@ -376,8 +366,8 @@ class RewardsCfg:
         weight=1.0,
         params={"command_name": "motion", "std": 3.14},
     )
-    action_rate_l2 = RewTerm(func=mdp.action_rate_l2, weight=-1e-1)
-    action_smoothness_l2 = RewTerm(func=mdp.action_smoothness_l2, weight=-0.003)
+    action_rate_l2 = RewTerm(func=mdp.action_rate_l2, weight=-1e-1)  # Disabled - use action_smoothness instead
+
     joint_limit = RewTerm(
         func=mdp.joint_pos_limits,
         weight=-10.0,
@@ -504,10 +494,10 @@ class TrackingEnvCfg(ManagerBasedRLEnvCfg):
     def __post_init__(self):
         """Post initialization."""
         # general settings
-        self.decimation = 10
+        self.decimation = 4
         self.episode_length_s = 10.0
         # simulation settings
-        self.sim.dt = 0.001
+        self.sim.dt = 0.005
         self.sim.render_interval = self.decimation
         self.sim.physics_material = self.scene.terrain.physics_material
         self.sim.physx.gpu_max_rigid_patch_count = 10 * 2**15

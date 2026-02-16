@@ -25,27 +25,6 @@ DAMPING_ANKLE_ROLL = 0.2
 DAMPING_WAIST_YAW = 5.0
 DAMPING_HEAD_YAW = 5.0
 DAMPING_ARM_ALL = 9.8
-
-# STIFFNESS_HIP_PITCH = 179
-# STIFFNESS_HIP_ROLL = 179
-# STIFFNESS_HIP_YAW = 155
-# STIFFNESS_KNEE_PITCH = 179
-# STIFFNESS_ANKLE_PITCH = 155
-# STIFFNESS_ANKLE_ROLL = 155
-# STIFFNESS_WAIST_YAW = 155
-# STIFFNESS_HEAD_YAW = 155
-# STIFFNESS_ARM_ALL = 155
-
-# # Damping
-# DAMPING_HIP_PITCH = 11.4
-# DAMPING_HIP_ROLL = 11.4
-# DAMPING_HIP_YAW = 9.8
-# DAMPING_KNEE_PITCH = 11.4
-# DAMPING_ANKLE_PITCH = 9.8
-# DAMPING_ANKLE_ROLL = 9.8
-# DAMPING_WAIST_YAW = 9.8
-# DAMPING_HEAD_YAW = 9.8
-# DAMPING_ARM_ALL = 9.8
     
     
 PM01_CFG = ArticulationCfg(
@@ -73,9 +52,9 @@ PM01_CFG = ArticulationCfg(
     init_state=ArticulationCfg.InitialStateCfg(
         pos=(0.0, 0.0, 0.9),
         joint_pos={
-            "j.*_hip_pitch_.*": -0.12,
-            "j.*_knee_pitch_.*": 0.24,
-            "j.*_ankle_pitch_.*": -0.12,
+            "j.*_hip_pitch_.*": -0.24,
+            "j.*_knee_pitch_.*": 0.48,
+            "j.*_ankle_pitch_.*": -0.24,
             "j.*_elbow_pitch_.*": 0.6,
             "j13_shoulder_pitch_l": 0.2,
             "j14_shoulder_roll_l": 0.2,
@@ -93,6 +72,7 @@ PM01_CFG = ArticulationCfg(
             velocity_limit_sim=26.3,
             stiffness=STIFFNESS_HIP_PITCH,
             damping=DAMPING_HIP_PITCH,
+            armature=0.0453,
         ),
         # Hip roll
         "hip_roll": ImplicitActuatorCfg(
@@ -101,6 +81,7 @@ PM01_CFG = ArticulationCfg(
             velocity_limit_sim=26.3,
             stiffness=STIFFNESS_HIP_ROLL,
             damping=DAMPING_HIP_ROLL,
+            armature=0.0453,
         ),
         # Hip yaw
         "hip_yaw": ImplicitActuatorCfg(
@@ -109,6 +90,7 @@ PM01_CFG = ArticulationCfg(
             velocity_limit_sim=35.2,
             stiffness=STIFFNESS_HIP_YAW,
             damping=DAMPING_HIP_YAW,
+            armature=0.039176,
         ),
         # Knee pitch (high torque)
         "knee_pitch": ImplicitActuatorCfg(
@@ -117,6 +99,7 @@ PM01_CFG = ArticulationCfg(
             velocity_limit_sim=26.3,
             stiffness=STIFFNESS_KNEE_PITCH,
             damping=DAMPING_KNEE_PITCH,
+            armature=0.0453,
         ),
         # Ankle pitch
         "ankle_pitch": ImplicitActuatorCfg(
@@ -125,7 +108,7 @@ PM01_CFG = ArticulationCfg(
             velocity_limit_sim=35.2,
             stiffness=STIFFNESS_ANKLE_PITCH,
             damping=DAMPING_ANKLE_PITCH,
-            armature=0.0067,
+            armature=0.039176,
         ),
         # Ankle roll
         "ankle_roll": ImplicitActuatorCfg(
@@ -134,7 +117,7 @@ PM01_CFG = ArticulationCfg(
             velocity_limit_sim=35.2,
             stiffness=STIFFNESS_ANKLE_ROLL,
             damping=DAMPING_ANKLE_ROLL,
-            armature=0.0067,
+            armature=0.039176,
         ),
         # Waist
         "waist": ImplicitActuatorCfg(
@@ -143,6 +126,7 @@ PM01_CFG = ArticulationCfg(
             velocity_limit_sim=35.2,
             stiffness=STIFFNESS_WAIST_YAW,
             damping=DAMPING_WAIST_YAW,
+            armature=0.039176,
         ),
         # Arms
         "arms": ImplicitActuatorCfg(
@@ -154,6 +138,7 @@ PM01_CFG = ArticulationCfg(
             velocity_limit_sim=35.2,
             stiffness=STIFFNESS_ARM_ALL,
             damping=DAMPING_ARM_ALL,
+            armature=0.039176,
         ),
         # Head
         "head": ImplicitActuatorCfg(
@@ -162,6 +147,7 @@ PM01_CFG = ArticulationCfg(
             velocity_limit_sim=35.2,
             stiffness=STIFFNESS_HEAD_YAW,
             damping=DAMPING_HEAD_YAW,
+            armature=0.039176,
         ),
     },
 )
