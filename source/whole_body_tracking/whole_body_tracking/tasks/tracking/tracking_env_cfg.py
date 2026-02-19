@@ -304,15 +304,6 @@ class EventCfg:
         },
     )
 
-    # Action lag randomization
-    randomize_action_lag = EventTerm(
-        func=mdp.randomize_action_lag,
-        mode="reset",
-        params={
-            "action_lag_range": (1, 6),
-        },
-    )
-
     # Motor observation lag randomization
     randomize_motor_obs_lag = EventTerm(
         func=mdp.randomize_motor_obs_lag,

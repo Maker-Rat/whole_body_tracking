@@ -1,11 +1,10 @@
 import isaaclab.sim as sim_utils
-from isaaclab.actuators import ImplicitActuatorCfg
 from isaaclab.assets.articulation import ArticulationCfg
-
+from isaaclab.actuators import DelayedImplicitActuatorCfg
 from whole_body_tracking.assets import ASSET_DIR
 
 
-# PM01 motor parameters (updated for new PD config)
+# PM01 motor parameters
 STIFFNESS_HIP_PITCH = 70
 STIFFNESS_HIP_ROLL = 70
 STIFFNESS_HIP_YAW = 50
@@ -25,8 +24,12 @@ DAMPING_ANKLE_ROLL = 0.2
 DAMPING_WAIST_YAW = 5.0
 DAMPING_HEAD_YAW = 5.0
 DAMPING_ARM_ALL = 9.8
-    
-    
+
+# Action lag range in physics timesteps (matching mjlab DelayedActuatorCfg)
+ACTION_DELAY_MIN_LAG = 1
+ACTION_DELAY_MAX_LAG = 6
+
+
 PM01_CFG = ArticulationCfg(
     spawn=sim_utils.UrdfFileCfg(
         fix_base=False,
@@ -66,70 +69,84 @@ PM01_CFG = ArticulationCfg(
     soft_joint_pos_limit_factor=0.9,
     actuators={
         # Hip pitch (high torque)
-        "hip_pitch": ImplicitActuatorCfg(
+        "hip_pitch": DelayedImplicitActuatorCfg(
             joint_names_expr=["j00_hip_pitch_l", "j06_hip_pitch_r"],
             effort_limit_sim=164.0,
             velocity_limit_sim=26.3,
             stiffness=STIFFNESS_HIP_PITCH,
             damping=DAMPING_HIP_PITCH,
             armature=0.0453,
+            min_delay=ACTION_DELAY_MIN_LAG,
+            max_delay=ACTION_DELAY_MAX_LAG,
         ),
         # Hip roll
-        "hip_roll": ImplicitActuatorCfg(
+        "hip_roll": DelayedImplicitActuatorCfg(
             joint_names_expr=["j01_hip_roll_l", "j07_hip_roll_r"],
             effort_limit_sim=164.0,
             velocity_limit_sim=26.3,
             stiffness=STIFFNESS_HIP_ROLL,
             damping=DAMPING_HIP_ROLL,
             armature=0.0453,
+            min_delay=ACTION_DELAY_MIN_LAG,
+            max_delay=ACTION_DELAY_MAX_LAG,
         ),
         # Hip yaw
-        "hip_yaw": ImplicitActuatorCfg(
+        "hip_yaw": DelayedImplicitActuatorCfg(
             joint_names_expr=["j02_hip_yaw_l", "j08_hip_yaw_r"],
             effort_limit_sim=61.0,
             velocity_limit_sim=35.2,
             stiffness=STIFFNESS_HIP_YAW,
             damping=DAMPING_HIP_YAW,
             armature=0.039176,
+            min_delay=ACTION_DELAY_MIN_LAG,
+            max_delay=ACTION_DELAY_MAX_LAG,
         ),
         # Knee pitch (high torque)
-        "knee_pitch": ImplicitActuatorCfg(
+        "knee_pitch": DelayedImplicitActuatorCfg(
             joint_names_expr=["j03_knee_pitch_l", "j09_knee_pitch_r"],
             effort_limit_sim=164.0,
             velocity_limit_sim=26.3,
             stiffness=STIFFNESS_KNEE_PITCH,
             damping=DAMPING_KNEE_PITCH,
             armature=0.0453,
+            min_delay=ACTION_DELAY_MIN_LAG,
+            max_delay=ACTION_DELAY_MAX_LAG,
         ),
         # Ankle pitch
-        "ankle_pitch": ImplicitActuatorCfg(
+        "ankle_pitch": DelayedImplicitActuatorCfg(
             joint_names_expr=["j04_ankle_pitch_l", "j10_ankle_pitch_r"],
             effort_limit_sim=61.0,
             velocity_limit_sim=35.2,
             stiffness=STIFFNESS_ANKLE_PITCH,
             damping=DAMPING_ANKLE_PITCH,
             armature=0.039176,
+            min_delay=ACTION_DELAY_MIN_LAG,
+            max_delay=ACTION_DELAY_MAX_LAG,
         ),
         # Ankle roll
-        "ankle_roll": ImplicitActuatorCfg(
+        "ankle_roll": DelayedImplicitActuatorCfg(
             joint_names_expr=["j05_ankle_roll_l", "j11_ankle_roll_r"],
             effort_limit_sim=61.0,
             velocity_limit_sim=35.2,
             stiffness=STIFFNESS_ANKLE_ROLL,
             damping=DAMPING_ANKLE_ROLL,
             armature=0.039176,
+            min_delay=ACTION_DELAY_MIN_LAG,
+            max_delay=ACTION_DELAY_MAX_LAG,
         ),
         # Waist
-        "waist": ImplicitActuatorCfg(
+        "waist": DelayedImplicitActuatorCfg(
             joint_names_expr=["j12_waist_yaw"],
             effort_limit_sim=61.0,
             velocity_limit_sim=35.2,
             stiffness=STIFFNESS_WAIST_YAW,
             damping=DAMPING_WAIST_YAW,
             armature=0.039176,
+            min_delay=ACTION_DELAY_MIN_LAG,
+            max_delay=ACTION_DELAY_MAX_LAG,
         ),
         # Arms
-        "arms": ImplicitActuatorCfg(
+        "arms": DelayedImplicitActuatorCfg(
             joint_names_expr=[
                 "j13_shoulder_pitch_l", "j14_shoulder_roll_l", "j15_shoulder_yaw_l", "j16_elbow_pitch_l", "j17_elbow_yaw_l",
                 "j18_shoulder_pitch_r", "j19_shoulder_roll_r", "j20_shoulder_yaw_r", "j21_elbow_pitch_r", "j22_elbow_yaw_r"
@@ -139,15 +156,19 @@ PM01_CFG = ArticulationCfg(
             stiffness=STIFFNESS_ARM_ALL,
             damping=DAMPING_ARM_ALL,
             armature=0.039176,
+            min_delay=ACTION_DELAY_MIN_LAG,
+            max_delay=ACTION_DELAY_MAX_LAG,
         ),
         # Head
-        "head": ImplicitActuatorCfg(
+        "head": DelayedImplicitActuatorCfg(
             joint_names_expr=["j23_head_yaw"],
             effort_limit_sim=61.0,
             velocity_limit_sim=35.2,
             stiffness=STIFFNESS_HEAD_YAW,
             damping=DAMPING_HEAD_YAW,
             armature=0.039176,
+            min_delay=ACTION_DELAY_MIN_LAG,
+            max_delay=ACTION_DELAY_MAX_LAG,
         ),
     },
 )
