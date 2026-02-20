@@ -1,6 +1,6 @@
 import isaaclab.sim as sim_utils
 from isaaclab.assets.articulation import ArticulationCfg
-from isaaclab.actuators import DelayedImplicitActuatorCfg
+from whole_body_tracking.robots.actuator import DelayedImplicitActuatorCfg
 from whole_body_tracking.assets import ASSET_DIR
 
 
