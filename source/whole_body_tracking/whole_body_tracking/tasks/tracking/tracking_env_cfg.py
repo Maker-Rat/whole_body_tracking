@@ -137,6 +137,8 @@ class ObservationsCfg:
         )
         actions = ObsTerm(func=mdp.last_action, history_length=3)
 
+        motion_phase = ObsTerm(func=mdp.motion_phase, params={"command_name": "motion"})
+
         def __post_init__(self):
             self.enable_corruption = True
             self.concatenate_terms = True
@@ -155,6 +157,7 @@ class ObservationsCfg:
         joint_pos = ObsTerm(func=mdp.joint_pos_rel, history_length=3)
         joint_vel = ObsTerm(func=mdp.joint_vel_rel, scale=0.05, history_length=3)
         actions = ObsTerm(func=mdp.last_action, history_length=3)
+        motion_phase = ObsTerm(func=mdp.motion_phase, params={"command_name": "motion"})
 
         def __post_init__(self):
             self.concatenate_terms = True
@@ -357,7 +360,7 @@ class RewardsCfg:
         weight=1.0,
         params={"command_name": "motion", "std": 3.14},
     )
-    action_rate_l2 = RewTerm(func=mdp.action_rate_l2, weight=-1e-1)  # Disabled - use action_smoothness instead
+    action_rate_l2 = RewTerm(func=mdp.action_rate_l2, weight=-1e-1)
 
     joint_limit = RewTerm(
         func=mdp.joint_pos_limits,

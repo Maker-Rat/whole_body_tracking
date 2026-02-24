@@ -330,3 +330,26 @@ def joint_vel_rel_lagged(env: ManagerBasedEnv) -> torch.Tensor:
     # Return only joint velocities (second half)
     num_joints = asset.num_joints
     return lagged_motor[:, num_joints:]
+
+def motion_phase(env: ManagerBasedEnv, command_name: str) -> torch.Tensor:
+    """Get the current phase of the motion clip as (sin(φ), cos(φ)).
+
+    Encodes *where* in the motion clip each environment currently is.
+    Using sin/cos rather than a raw [0, 1] scalar keeps the signal smooth
+    and continuous — there is no discontinuous jump when the clip wraps.
+
+    φ = 2π * time_steps / (time_step_total - 1)
+
+    Both values come directly from MotionCommand with no extra attributes needed:
+        - ``command.time_steps``             : LongTensor (num_envs,) – current frame index
+        - ``command.motion.time_step_total`` : int – total frames in the clip
+
+    Returns:
+        Tensor of shape (num_envs, 2) containing [sin(φ), cos(φ)].
+    """
+    command: MotionCommand = env.command_manager.get_term(command_name)
+
+    # time_steps is a LongTensor — cast to float for the division
+    phase = 2.0 * torch.pi * command.time_steps.float() / max(command.motion.time_step_total - 1, 1)
+
+    return torch.stack([torch.sin(phase), torch.cos(phase)], dim=-1)  # (num_envs, 2)
